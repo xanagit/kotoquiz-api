@@ -1,0 +1,44 @@
+# Les exécutables générés
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Les fichiers et dossiers de compilation
+/build/
+bin/
+vendor/
+
+# Dépendances Go Modules
+/go/pkg/
+/go/bin/
+/go/cache/
+
+# Configuration de l'IDE et de l'éditeur
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Fichiers de logs
+*.log
+
+# Les fichiers de tests de benchmark
+testdata/
+
+# Les artefacts de test
+*.coverprofile
+*.testresult
+
+# Fichiers personnels et temporaires
+*.tmp
+*.temp
+*.bak
+
+# Fichiers système
+.DS_Store
+Thumbs.db

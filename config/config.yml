@@ -1,0 +1,8 @@
+app:
+  port: 8080
+database:
+  host: localhost
+  user: admin
+  password: mypassword
+  name: kotoquiz
+  port: 5432
