@@ -19,7 +19,7 @@ vendor/
 
 # Configuration de l'IDE et de l'éditeur
 .vscode/
--.idea/
+.idea/
 *.swp
 *.swo
 *~
