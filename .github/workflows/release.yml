@@ -6,12 +6,13 @@ on:
   pull_request:
     branches: [ "main" ]
 
+env:
+  GO_VERSION: '1.23.3'
+  APP_NAME: 'kotoquiz-api'
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      GO_VERSION: '1.23.3'
-      APP_NAME: 'kotoquiz-api'
     steps:
       # Step 1: Clone repository
       - uses: actions/checkout@v4
