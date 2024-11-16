@@ -47,14 +47,17 @@ jobs:
         run: |
           docker build -t ghcr.io/${{ github.repository_owner }}/${{ env.APP_NAME}}:${{ env.IMAGE_TAG }} .
 
-        # Step 7: Push Docker image to GHCR
-#      - name: Push Docker image
-#        run: |
-#          docker push ghcr.io/${{ github.repository }}/${{ env.APP_NAME}}:${{ env.IMAGE_TAG }}
-
         # Step 7: Tag as "latest" and push
       - name: Tag and Push as latest
         run: |
             docker tag ghcr.io/${{ github.repository_owner }}/${{ env.APP_NAME }}:${{ env.IMAGE_TAG }} ghcr.io/${{ github.repository_owner }}/${{ env.APP_NAME }}:latest
             docker push ghcr.io/${{ github.repository_owner }}/${{ env.APP_NAME }}:${{ env.IMAGE_TAG }}
             docker push ghcr.io/${{ github.repository_owner }}/${{ env.APP_NAME }}:latest
+
+        # Step 8: Create Git tag for the release
+      - name: Create Git tag
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git tag -a "${{ env.IMAGE_TAG }}" -m "Release for image tag ${{ env.IMAGE_TAG }}"
+          git push origin "${{ env.IMAGE_TAG }}"
