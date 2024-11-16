@@ -1,4 +1,4 @@
-name: Go
+name: Release
 
 on:
   push:
@@ -13,6 +13,9 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       # Step 1: Clone repository
       - uses: actions/checkout@v4
@@ -52,5 +55,6 @@ jobs:
         # Step 7: Tag as "latest" and push
       - name: Tag and Push as latest
         run: |
-          docker tag ghcr.io/${{ github.repository }}/${{ env.APP_NAME}}:${{ env.IMAGE_TAG }} ghcr.io/${{ github.repository }}/${{ env.APP_NAME}}:latest
-          docker push ghcr.io/${{ github.repository }}/${{ env.APP_NAME}}:latest
+            docker tag ghcr.io/${{ github.repository_owner }}/${{ env.APP_NAME }}:${{ env.IMAGE_TAG }} ghcr.io/${{ github.repository_owner }}/${{ env.APP_NAME }}:latest
+            docker push ghcr.io/${{ github.repository_owner }}/${{ env.APP_NAME }}:${{ env.IMAGE_TAG }}
+            docker push ghcr.io/${{ github.repository_owner }}/${{ env.APP_NAME }}:latest
