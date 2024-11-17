@@ -10,5 +10,5 @@ type Label struct {
 	Fr   string    `gorm:"size:255" json:"fr"`
 	Type string    `gorm:"size:100" json:"type"`
 
-	Words []*Word `gorm:"many2many:word_tag" json:"-"`
+	Words []*Word `gorm:"many2many:word_tag;constraint:OnDelete:CASCADE;" json:"-"`
 }

@@ -67,3 +67,11 @@ docker compose up -d
 go env -w GOSUMDB=sum.golang.org
 go env -w GOPROXY=direct
 ```
+
+# Development
+## Recreate database
+```zsh
+psql -h localhost -U admin postgres
+> DROP DATABASE kotoquiz;
+> CREATE DATABASE kotoquiz;
+```

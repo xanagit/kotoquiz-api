@@ -36,18 +36,33 @@ func main() {
 		log.Fatal("failed to migrate database:", err)
 	}
 
-	// Initialisation du repository et du service
+	// Word repository, service and controller
 	wordRepository := &repositories.WordRepositoryImpl{DB: db}
 	wordService := &services.WordServiceImpl{Repo: wordRepository}
-	wordDtoService := &services.WordDtoServiceImpl{Repo: wordRepository}
 	wordController := &controllers.WordControllerImpl{Service: wordService}
+
+	// WordDto service and controller
+	wordDtoService := &services.WordDtoServiceImpl{Repo: wordRepository}
 	wordDtoController := &controllers.WordDtoControllerImpl{WordDtoService: wordDtoService}
+
+	// Label repository, service and controller
+	labelRepository := &repositories.LabelRepositoryImpl{DB: db}
+	labelService := &services.LabelServiceImpl{Repo: labelRepository}
+	labelController := &controllers.LabelControllerImpl{Service: labelService}
+
 	// Configuration de l'application Gin
 	r := gin.Default()
 	appUserGroup := r.Group("/api/v1/app")
 	{
 		appUserGroup.GET("/words", wordDtoController.ListDtoWords)    // query param: ids, lang
 		appUserGroup.GET("/words/:id", wordDtoController.ReadDtoWord) // query param: lang
+	}
+
+	labelsGroup := r.Group("/api/v1")
+	{
+		labelsGroup.GET("/tags", labelController.ListTags)
+		labelsGroup.GET("/categories", labelController.ListCategories)
+		labelsGroup.GET("/levelNames", labelController.ListLevelNames)
 	}
 
 	techGroup := r.Group("/api/v1/tech")

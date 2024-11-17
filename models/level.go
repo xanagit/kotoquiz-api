@@ -9,6 +9,6 @@ type Level struct {
 	CategoryID uuid.UUID `gorm:"type:uuid" json:"-"`
 
 	Category   Label    `gorm:"foreignKey:CategoryID" json:"category"`
-	LevelNames []*Label `gorm:"many2many:level_values" json:"levelNames"`
+	LevelNames []*Label `gorm:"many2many:level_values;constraint:OnDelete:CASCADE;" json:"levelNames"`
 	Words      []*Word  `gorm:"many2many:word_level" json:"-"`
 }

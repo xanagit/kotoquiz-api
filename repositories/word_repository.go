@@ -50,5 +50,33 @@ func (r *WordRepositoryImpl) UpdateWord(word *models.Word) error {
 }
 
 func (r *WordRepositoryImpl) DeleteWord(id string) error {
-	return r.DB.Delete(&models.Word{}, "id = ?", id).Error
+	return r.DB.Transaction(func(tx *gorm.DB) error {
+		var word models.Word
+		// Charger le word avec ses associations
+		if err := tx.First(&word, "id = ?", id).Error; err != nil {
+			return err
+		}
+
+		// Sauvegarder l'ID de la traduction
+		translationID := word.TranslationID
+
+		// 1. Mettre à null la référence à la traduction
+		if err := tx.Model(&word).Update("translation_id", nil).Error; err != nil {
+			return err
+		}
+
+		// 2. Supprimer le word (cela déclenchera BeforeDelete)
+		if err := tx.Delete(&word).Error; err != nil {
+			return err
+		}
+
+		// 3. Maintenant nous pouvons supprimer la traduction
+		if translationID != uuid.Nil {
+			if err := tx.Delete(&models.Label{}, "id = ?", translationID).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 }
