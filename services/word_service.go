@@ -6,8 +6,7 @@ import (
 )
 
 type WordService interface {
-	GetWords() ([]*models.Word, error)
-	GetWordByID(id string) (*models.Word, error)
+	ReadWord(id string) (*models.Word, error)
 	CreateWord(word *models.Word) error
 	UpdateWord(word *models.Word) error
 	DeleteWord(id string) error
@@ -17,12 +16,8 @@ type WordServiceImpl struct {
 	Repo repositories.WordRepository
 }
 
-func (s *WordServiceImpl) GetWords() ([]*models.Word, error) {
-	return s.Repo.GetWords()
-}
-
-func (s *WordServiceImpl) GetWordByID(id string) (*models.Word, error) {
-	return s.Repo.GetWordByID(id)
+func (s *WordServiceImpl) ReadWord(id string) (*models.Word, error) {
+	return s.Repo.ReadWord(id)
 }
 
 func (s *WordServiceImpl) CreateWord(word *models.Word) error {

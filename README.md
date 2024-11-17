@@ -56,6 +56,10 @@ Exporter la variable DOCKER_BUILDKIT
 export DOCKER_BUILDKIT=1
 ```
 
+## Start Postgres
+```zsh
+docker compose up -d
+```
 
 ## Go configuration
 ### Configure env variables
@@ -63,4 +67,3 @@ export DOCKER_BUILDKIT=1
 go env -w GOSUMDB=sum.golang.org
 go env -w GOPROXY=direct
 ```
-

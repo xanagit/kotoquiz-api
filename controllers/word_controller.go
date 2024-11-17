@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/xanagit/kotoquiz-api/models"
 	"github.com/xanagit/kotoquiz-api/services"
 	"log"
@@ -10,29 +9,19 @@ import (
 )
 
 type WordController interface {
-	GetWords() ([]*models.Word, error)
-	GetWordByID(id string) (*models.Word, error)
-	CreateWord(word *models.Word) error
-	UpdateWord(word *models.Word) error
-	DeleteWord(id string) error
+	ReadWord(c *gin.Context)
+	CreateWord(c *gin.Context)
+	UpdateWord(c *gin.Context)
+	DeleteWord(c *gin.Context)
 }
 
 type WordControllerImpl struct {
 	Service services.WordService
 }
 
-func (s *WordControllerImpl) GetWords(c *gin.Context) {
-	words, err := s.Service.GetWords()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, words)
-}
-
-func (s *WordControllerImpl) GetWordByID(c *gin.Context) {
+func (s *WordControllerImpl) ReadWord(c *gin.Context) {
 	id := c.Param("id")
-	word, err := s.Service.GetWordByID(id)
+	word, err := s.Service.ReadWord(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -46,6 +35,7 @@ func (s *WordControllerImpl) CreateWord(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	log.Print(word)
 	if err := s.Service.CreateWord(&word); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -61,7 +51,7 @@ func (s *WordControllerImpl) UpdateWord(c *gin.Context) {
 		return
 	}
 
-	word.ID = fromStrToUuid(id)
+	word.ID = FromStrToUuid(id)
 	if err := s.Service.UpdateWord(&word); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -76,12 +66,4 @@ func (s *WordControllerImpl) DeleteWord(c *gin.Context) {
 		return
 	}
 	c.Status(http.StatusNoContent)
-}
-
-func fromStrToUuid(id string) uuid.UUID {
-	parsed, err := uuid.Parse(id)
-	if err != nil {
-		log.Fatalf("Invalid UUID format: %v", err)
-	}
-	return parsed
 }

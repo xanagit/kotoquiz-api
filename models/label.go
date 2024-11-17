@@ -5,10 +5,10 @@ import (
 )
 
 type Label struct {
-	ID uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-	En string    `gorm:"size:255"`
-	Fr string    `gorm:"size:255"`
+	ID   uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+	En   string    `gorm:"size:255" json:"en"`
+	Fr   string    `gorm:"size:255" json:"fr"`
+	Type string    `gorm:"size:100" json:"type"`
 
-	Words      []*Word `gorm:"many2many:word_tag"`
-	WordLevels []*Word `gorm:"many2many:word_level"`
+	Words []*Word `gorm:"many2many:word_tag" json:"-"`
 }

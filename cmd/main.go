@@ -31,7 +31,7 @@ func main() {
 	}
 
 	// Auto-migrate the models to keep the schema in sync
-	err = db.AutoMigrate(&models.Label{}, &models.Word{})
+	err = db.AutoMigrate(&models.Label{}, &models.Word{}, &models.Level{})
 	if err != nil {
 		log.Fatal("failed to migrate database:", err)
 	}
@@ -39,17 +39,23 @@ func main() {
 	// Initialisation du repository et du service
 	wordRepository := &repositories.WordRepositoryImpl{DB: db}
 	wordService := &services.WordServiceImpl{Repo: wordRepository}
+	wordDtoService := &services.WordDtoServiceImpl{Repo: wordRepository}
 	wordController := &controllers.WordControllerImpl{Service: wordService}
+	wordDtoController := &controllers.WordDtoControllerImpl{WordDtoService: wordDtoService}
 	// Configuration de l'application Gin
 	r := gin.Default()
-	apiGroup := r.Group("/api/v1/words")
+	appUserGroup := r.Group("/api/v1/app")
 	{
-		// Utilisez les méthodes du service
-		apiGroup.GET("", wordController.GetWords)
-		apiGroup.GET("/:id", wordController.GetWordByID)
-		apiGroup.POST("", wordController.CreateWord)
-		apiGroup.PUT("/:id", wordController.UpdateWord)
-		apiGroup.DELETE("/:id", wordController.DeleteWord)
+		appUserGroup.GET("/words", wordDtoController.ListDtoWords)    // query param: ids, lang
+		appUserGroup.GET("/words/:id", wordDtoController.ReadDtoWord) // query param: lang
+	}
+
+	techGroup := r.Group("/api/v1/tech")
+	{
+		techGroup.GET("/words/:id", wordController.ReadWord)
+		techGroup.POST("/words", wordController.CreateWord)
+		techGroup.PUT("/words/:id", wordController.UpdateWord)
+		techGroup.DELETE("/words/:id", wordController.DeleteWord)
 	}
 
 	runError := r.Run()
