@@ -42,8 +42,8 @@ func mapWordToDTO(word *models.Word, lang string) *dto.WordDTO {
 	return &dto.WordDTO{
 		ID:          word.ID,
 		Kanji:       word.Kanji,
-		Onyomi:      word.Onyomi,
-		Kunyomi:     word.Kunyomi,
+		Yomi:        word.Yomi,
+		YomiType:    word.YomiType,
 		ImageURL:    word.ImageURL,
 		Translation: mappedTranslation,
 		Tags:        mappedTags,

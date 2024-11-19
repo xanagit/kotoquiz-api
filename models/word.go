@@ -8,8 +8,8 @@ import (
 type Word struct {
 	ID            uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 	Kanji         string    `gorm:"size:50" json:"kanji"`
-	Onyomi        string    `gorm:"size:50" json:"onyomi"`
-	Kunyomi       string    `gorm:"size:50" json:"kunyomi"`
+	Yomi          string    `gorm:"size:50" json:"yomi"`
+	YomiType      string    `gorm:"size:50" json:"yomiType"` // ONYOMI, KUNYOMI
 	ImageURL      string    `gorm:"size:255" json:"imageURL"`
 	TranslationID uuid.UUID `gorm:"type:uuid" json:"-"`
 
