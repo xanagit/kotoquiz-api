@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/xanagit/kotoquiz-api/models"
 	"github.com/xanagit/kotoquiz-api/services"
-	"log"
 	"net/http"
 )
 
@@ -35,7 +34,6 @@ func (s *WordControllerImpl) CreateWord(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	log.Print(word)
 	if err := s.Service.CreateWord(&word); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

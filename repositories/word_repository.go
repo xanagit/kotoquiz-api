@@ -36,7 +36,6 @@ func (r *WordRepositoryImpl) ListWordsByIds(ids []string) ([]*models.Word, error
 
 func (r *WordRepositoryImpl) ReadWord(id string) (*models.Word, error) {
 	var word models.Word
-	// .Preload("Tags")
 	result := r.DB.Preload("Translation").Preload("Tags").Preload("Levels").Preload("Levels.Category").Preload("Levels.LevelNames").First(&word, "id = ?", id)
 	return &word, result.Error
 }

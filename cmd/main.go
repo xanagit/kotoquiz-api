@@ -48,7 +48,15 @@ func main() {
 	// Label repository, service and controller
 	labelRepository := &repositories.LabelRepositoryImpl{DB: db}
 	labelService := &services.LabelServiceImpl{Repo: labelRepository}
-	labelController := &controllers.LabelControllerImpl{Service: labelService}
+
+	// Tag controller
+	tagController := &controllers.TagControllerImpl{Service: labelService}
+
+	// Category controller
+	categoryController := &controllers.CategoryControllerImpl{Service: labelService}
+
+	// LevelName controller
+	levelNameController := &controllers.LevelNameControllerImpl{Service: labelService}
 
 	// Configuration de l'application Gin
 	r := gin.Default()
@@ -58,11 +66,25 @@ func main() {
 		appUserGroup.GET("/words/:id", wordDtoController.ReadDtoWord) // query param: lang
 	}
 
-	labelsGroup := r.Group("/api/v1")
+	labelGroup := r.Group("/api/v1")
 	{
-		labelsGroup.GET("/tags", labelController.ListTags)
-		labelsGroup.GET("/categories", labelController.ListCategories)
-		labelsGroup.GET("/levelNames", labelController.ListLevelNames)
+		labelGroup.GET("/tags", tagController.ListTags)
+		labelGroup.GET("/tags/:id", tagController.ReadTag)
+		labelGroup.POST("/tags", tagController.CreateTag)
+		labelGroup.PUT("/tags/:id", tagController.UpdateTag)
+		labelGroup.DELETE("/tags/:id", tagController.DeleteTag)
+
+		labelGroup.GET("/categories", categoryController.ListCategories)
+		labelGroup.GET("/categories/:id", categoryController.ReadCategory)
+		labelGroup.POST("/categories", categoryController.CreateCategory)
+		labelGroup.PUT("/categories/:id", categoryController.UpdateCategory)
+		labelGroup.DELETE("/categories/:id", categoryController.DeleteCategory)
+
+		labelGroup.GET("/categories/:cid/levelNames", levelNameController.ListLevelNames)
+		labelGroup.GET("/levelNames/:id", levelNameController.ReadLevelName)
+		labelGroup.POST("/categories/:cid/levelNames", levelNameController.CreateLevelName)
+		labelGroup.PUT("levelNames/:id", levelNameController.UpdateLevelName)
+		labelGroup.DELETE("/levelNames/:id", levelNameController.DeleteLevelName)
 	}
 
 	techGroup := r.Group("/api/v1/tech")
