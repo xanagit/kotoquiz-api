@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"github.com/xanagit/kotoquiz-api/initialisation"
 	"os"
 	"os/exec"
 	"sync"
@@ -9,10 +10,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/xanagit/kotoquiz-api/controllers"
-	"github.com/xanagit/kotoquiz-api/models"
-	"github.com/xanagit/kotoquiz-api/repositories"
-	"github.com/xanagit/kotoquiz-api/services"
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -127,72 +124,13 @@ func setupRouter() (*gin.Engine, error) {
 	}
 
 	dsn := "host=localhost user=postgres password=password dbname=testdb port=5433 sslmode=disable"
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	if err != nil {
-		logger.Error("Failed to connect to database", zap.Error(err))
-		return nil, err
-	}
-
-	// Auto-migrate the models
-	err = db.AutoMigrate(&models.Label{}, &models.Word{}, &models.Level{})
+	db, err := initialisation.DatabaseConnection(dsn)
 	if err != nil {
 		logger.Error("Failed to migrate database", zap.Error(err))
 		return nil, err
 	}
 
-	// Initialize repositories, services, and controllers
-	labelRepository := &repositories.LabelRepositoryImpl{DB: db}
-	labelService := &services.LabelServiceImpl{Repo: labelRepository}
-
-	wordRepository := &repositories.WordRepositoryImpl{DB: db}
-	wordService := &services.WordServiceImpl{Repo: wordRepository}
-	wordController := &controllers.WordControllerImpl{Service: wordService}
-
-	wordDtoService := &services.WordDtoServiceImpl{Repo: wordRepository}
-	wordDtoController := &controllers.WordDtoControllerImpl{WordDtoService: wordDtoService}
-
-	// Tag controller
-	tagController := &controllers.TagControllerImpl{Service: labelService}
-
-	// Category controller
-	categoryController := &controllers.CategoryControllerImpl{Service: labelService}
-
-	// LevelName controller
-	levelNameController := &controllers.LevelNameControllerImpl{Service: labelService}
-
-	// Setup Gin router
-	r := gin.Default()
-	appUserGroup := r.Group("/api/v1/app")
-	{
-		appUserGroup.GET("/words", wordDtoController.ListDtoWords)    // query param: ids, lang
-		appUserGroup.GET("/words/:id", wordDtoController.ReadDtoWord) // query param: lang
-	}
-
-	techGroup := r.Group("/api/v1/tech")
-	{
-		techGroup.GET("/words/:id", wordController.ReadWord)
-		techGroup.POST("/words", wordController.CreateWord)
-		techGroup.PUT("/words/:id", wordController.UpdateWord)
-		techGroup.DELETE("/words/:id", wordController.DeleteWord)
-	}
-
-	labelGroup := r.Group("/api/v1")
-	{
-		labelGroup.POST("/tags", tagController.CreateTag)
-		labelGroup.GET("/tags/:id", tagController.ReadTag)
-		labelGroup.PUT("/tags/:id", tagController.UpdateTag)
-		labelGroup.DELETE("/tags/:id", tagController.DeleteTag)
-
-		labelGroup.POST("/categories", categoryController.CreateCategory)
-		labelGroup.GET("/categories/:id", categoryController.ReadCategory)
-		labelGroup.PUT("/categories/:id", categoryController.UpdateCategory)
-		labelGroup.DELETE("/categories/:id", categoryController.DeleteCategory)
-
-		labelGroup.POST("/levelNames", levelNameController.CreateLevelName)
-		labelGroup.GET("/levelNames/:id", levelNameController.ReadLevelName)
-		labelGroup.PUT("/levelNames/:id", levelNameController.UpdateLevelName)
-		labelGroup.DELETE("/levelNames/:id", levelNameController.DeleteLevelName)
-	}
+	r := initialisation.GinHandlers(db)
 
 	logger.Info("router initialized", zap.Any("router", router))
 

@@ -12,3 +12,5 @@ type Level struct {
 	LevelNames []*Label `gorm:"many2many:level_values;constraint:OnDelete:CASCADE;" json:"levelNames"`
 	Words      []*Word  `gorm:"many2many:word_level" json:"-"`
 }
+
+// précharger pour le list all Preload("LevelNames").Preload("Category")

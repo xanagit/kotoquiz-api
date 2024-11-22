@@ -20,7 +20,7 @@ type LevelNameControllerImpl struct {
 }
 
 func (lnc *LevelNameControllerImpl) ListLevelNames(c *gin.Context) {
-	cid := c.Param("cid")
+	cid := c.Param("id")
 	labels, err := lnc.Service.ListLabelsOfCategory("LEVEL_NAME", cid)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -30,7 +30,7 @@ func (lnc *LevelNameControllerImpl) ListLevelNames(c *gin.Context) {
 }
 
 func (lnc *LevelNameControllerImpl) CreateLevelName(c *gin.Context) {
-	cid := c.Param("cid")
+	cid := c.Param("id")
 	var levelName models.Label
 	if err := c.ShouldBindJSON(&levelName); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
