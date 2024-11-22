@@ -26,16 +26,14 @@ func GinHandlers(db *gorm.DB) *gin.Engine {
 	// Label repository, service and controller
 	labelRepository := &repositories.LabelRepositoryImpl{DB: db}
 	labelService := &services.LabelServiceImpl{Repo: labelRepository}
-	labelController := &controllers.LabelControllerImpl{Service: labelService}
+
+	// Level repository, service and controller
+	levelRepository := &repositories.LevelRepositoryImpl{DB: db}
+	levelService := &services.LevelServiceImpl{Repo: levelRepository}
+	levelController := &controllers.LevelControllerImpl{Service: levelService}
 
 	// Tag controller
 	tagController := &controllers.TagControllerImpl{Service: labelService}
-
-	// Category controller
-	categoryController := &controllers.CategoryControllerImpl{Service: labelService}
-
-	// LevelName controller
-	levelNameController := &controllers.LevelNameControllerImpl{Service: labelService}
 
 	// Configuration de l'application Gin
 	r := gin.Default()
@@ -44,8 +42,7 @@ func GinHandlers(db *gorm.DB) *gin.Engine {
 		appUserGroup.GET("/words", wordDtoController.ListDtoWords)    // query param: ids, lang
 		appUserGroup.GET("/words/:id", wordDtoController.ReadDtoWord) // query param: lang
 		appUserGroup.GET("/tags", tagController.ListTags)
-		appUserGroup.GET("/categories", categoryController.ListCategories)
-		appUserGroup.GET("/categories/:id/levelNames", levelNameController.ListLevelNames)
+		appUserGroup.GET("/levels", levelController.ListLevels)
 	}
 
 	techGroup := r.Group("/api/v1/tech")
@@ -55,10 +52,15 @@ func GinHandlers(db *gorm.DB) *gin.Engine {
 		techGroup.PUT("/words/:id", wordController.UpdateWord)
 		techGroup.DELETE("/words/:id", wordController.DeleteWord)
 
-		techGroup.GET("/labels/:id", labelController.ReadLabel)
-		techGroup.POST("/labels", labelController.CreateLabel)
-		techGroup.PUT("/labels/:id", labelController.UpdateLabel)
-		techGroup.DELETE("/labels/:id", labelController.DeleteLabel)
+		techGroup.GET("/tags/:id", tagController.ReadTag)
+		techGroup.POST("/tags", tagController.CreateTag)
+		techGroup.PUT("/tags/:id", tagController.UpdateTag)
+		techGroup.DELETE("/tags/:id", tagController.DeleteTag)
+
+		techGroup.GET("/levels/:id", levelController.ReadLevel)
+		techGroup.POST("/levels", levelController.CreateLevel)
+		techGroup.PUT("/levels/:id", levelController.UpdateLevel)
+		techGroup.DELETE("/levels/:id", levelController.DeleteLevel)
 	}
 	return r
 }
@@ -88,13 +90,13 @@ func DatabaseConnection(dsn string) (*gorm.DB, error) {
 }
 
 // Endpoints à implémenter
-//CRUD /labels
-//CRUD /levels
-// GET /level-names (liste levelNames)
-//CRUD /words
-//POST /words/{id}/tags {"tags": ["uuid1", "uuid2"]} Ajouter des tags à un mot
-//DELETE /words/{id}/tags {"tags": ["uuid1", "uuid2"]} Retirer des tags à un mot
 //POST /levels/{id}/words {"words": ["uuid1", "uuid2"]} Ajouter des mots à un level
 //DELETE /levels/{id}/words {"words": ["uuid1", "uuid2"]} Retirer des mots à un level
+
+// Ne pense pas implémenter :
+// GET /level-names (liste levelNames)
+// CRUD /labels (/tags devrait suffire)
+// POST /words/{id}/tags {"tags": ["uuid1", "uuid2"]} Ajouter des tags à un mot → peut être géré en mettant à jour word
+// DELETE /words/{id}/tags {"tags": ["uuid1", "uuid2"]} Retirer des tags à un mot → peut être géré en mettant à jour word
 //
 //Validation via middleware github.com/go-playground/validator
