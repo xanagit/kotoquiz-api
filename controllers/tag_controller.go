@@ -34,8 +34,8 @@ func (tc *TagControllerImpl) CreateTag(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	tag.Type = "TAG"
-	if err := tc.Service.CreateLabel(&tag); err != nil {
+
+	if err := tc.Service.CreateLabel(&tag, models.Tag); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -60,7 +60,6 @@ func (tc *TagControllerImpl) UpdateTag(c *gin.Context) {
 		return
 	}
 	tag.ID = FromStrToUuid(id)
-	tag.Type = "TAG"
 	if err := tc.Service.UpdateLabel(&tag); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

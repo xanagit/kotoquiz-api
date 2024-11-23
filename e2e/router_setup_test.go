@@ -106,7 +106,7 @@ func waitForDatabase(dsn string, retries int) error {
 				return nil
 			}
 		}
-		logger.Warn("Waiting for database...", zap.Int("attempt", i+1))
+		logger.Info("Waiting for database...", zap.Int("attempt", i+1))
 		time.Sleep(2 * time.Second)
 	}
 	logger.Error("Database not ready after retries", zap.Int("retries", retries))

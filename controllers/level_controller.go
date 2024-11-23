@@ -34,6 +34,7 @@ func (lc *LevelControllerImpl) CreateLevel(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
 	if err := lc.Service.CreateLevel(&level); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

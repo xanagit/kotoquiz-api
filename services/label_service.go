@@ -1,14 +1,15 @@
 package services
 
 import (
+	"github.com/google/uuid"
 	"github.com/xanagit/kotoquiz-api/models"
 	"github.com/xanagit/kotoquiz-api/repositories"
 )
 
 type LabelService interface {
-	ListLabels(labelType string) ([]*models.Label, error)
+	ListLabels(labelType models.LabelType) ([]*models.Label, error)
 	ReadLabel(id string) (*models.Label, error)
-	CreateLabel(label *models.Label) error
+	CreateLabel(label *models.Label, labelType models.LabelType) error
 	UpdateLabel(label *models.Label) error
 	DeleteLabel(id string) error
 }
@@ -17,7 +18,7 @@ type LabelServiceImpl struct {
 	Repo repositories.LabelRepository
 }
 
-func (s *LabelServiceImpl) ListLabels(labelType string) ([]*models.Label, error) {
+func (s *LabelServiceImpl) ListLabels(labelType models.LabelType) ([]*models.Label, error) {
 	return s.Repo.ListLabelsByType(labelType)
 }
 
@@ -25,7 +26,9 @@ func (s *LabelServiceImpl) ReadLabel(id string) (*models.Label, error) {
 	return s.Repo.ReadLabel(id)
 }
 
-func (s *LabelServiceImpl) CreateLabel(label *models.Label) error {
+func (s *LabelServiceImpl) CreateLabel(label *models.Label, labelType models.LabelType) error {
+	label.ID = uuid.Nil
+	label.Type = labelType
 	return s.Repo.CreateLabel(label)
 }
 

@@ -26,7 +26,7 @@ func (r *LevelRepositoryImpl) ListLevels() ([]*models.Level, error) {
 
 func (r *LevelRepositoryImpl) ReadLevel(id string) (*models.Level, error) {
 	var label models.Level
-	result := r.DB.First(&label, "id = ?", id)
+	result := r.DB.Preload("LevelNames").Preload("Category").First(&label, "id = ?", id)
 	return &label, result.Error
 }
 

@@ -21,6 +21,16 @@ func (s *WordServiceImpl) ReadWord(id string) (*models.Word, error) {
 }
 
 func (s *WordServiceImpl) CreateWord(word *models.Word) error {
+	word.Translation.Type = models.Translation
+	for _, t := range word.Tags {
+		t.Type = models.Tag
+	}
+	for _, t := range word.Levels {
+		t.Category.Type = models.Category
+		for _, l := range t.LevelNames {
+			l.Type = models.LevelName
+		}
+	}
 	return s.Repo.CreateWord(word)
 }
 

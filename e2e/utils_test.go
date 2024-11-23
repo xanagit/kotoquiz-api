@@ -56,3 +56,8 @@ func del(url string) int {
 
 	return w.Code
 }
+
+func ToJson[T any](input *T) string {
+	jsonData, _ := json.MarshalIndent(input, "", "  ")
+	return string(jsonData)
+}
