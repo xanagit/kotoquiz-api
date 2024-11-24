@@ -5,11 +5,18 @@ import (
 	"gorm.io/gorm"
 )
 
+type YomiType string
+
+const (
+	Onyomi  YomiType = "ONYOMI"
+	Kunyomi YomiType = "KUNYOMI"
+)
+
 type Word struct {
 	ID            uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 	Kanji         string    `gorm:"size:50" json:"kanji"`
 	Yomi          string    `gorm:"size:50" json:"yomi"`
-	YomiType      string    `gorm:"size:50" json:"yomiType"` // ONYOMI, KUNYOMI
+	YomiType      YomiType  `gorm:"size:50" json:"yomiType"`
 	ImageURL      string    `gorm:"size:255" json:"imageURL"`
 	TranslationID uuid.UUID `gorm:"type:uuid" json:"-"`
 

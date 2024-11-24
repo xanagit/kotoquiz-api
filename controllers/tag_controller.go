@@ -20,7 +20,7 @@ type TagControllerImpl struct {
 }
 
 func (tc *TagControllerImpl) ListTags(c *gin.Context) {
-	labels, err := tc.Service.ListLabels("TAG")
+	labels, err := tc.Service.ListLabels(models.Tag)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

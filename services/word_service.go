@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/google/uuid"
 	"github.com/xanagit/kotoquiz-api/models"
 	"github.com/xanagit/kotoquiz-api/repositories"
 )
@@ -21,6 +22,7 @@ func (s *WordServiceImpl) ReadWord(id string) (*models.Word, error) {
 }
 
 func (s *WordServiceImpl) CreateWord(word *models.Word) error {
+	word.ID = uuid.Nil
 	word.Translation.Type = models.Translation
 	for _, t := range word.Tags {
 		t.Type = models.Tag

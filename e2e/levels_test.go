@@ -13,7 +13,7 @@ import (
 func Test_should_create_level(t *testing.T) {
 	t.Parallel()
 
-	level := generateLevel()
+	level := GenerateLevel()
 	var resLevel models.Level
 	httpResCode := post("/api/v1/tech/levels", ToJson(&level), &resLevel)
 
@@ -26,7 +26,7 @@ func Test_should_create_level(t *testing.T) {
 func Test_should_read_level(t *testing.T) {
 	t.Parallel()
 
-	level := generateLevel()
+	level := GenerateLevel()
 	logger.Info("==> level", zap.Any("level", level))
 	var insertedLevel models.Level
 	httpResCode := post("/api/v1/tech/levels", ToJson(&level), &insertedLevel)
@@ -44,7 +44,7 @@ func Test_should_read_level(t *testing.T) {
 func Test_should_update_level(t *testing.T) {
 	t.Parallel()
 
-	level := generateLevel()
+	level := GenerateLevel()
 	level.ID = uuid.Nil
 	var insertedTag models.Level
 	post("/api/v1/tech/levels", ToJson(&level), &insertedTag)
@@ -70,7 +70,7 @@ func Test_should_update_level(t *testing.T) {
 func Test_should_delete_level(t *testing.T) {
 	t.Parallel()
 
-	level := generateLevel()
+	level := GenerateLevel()
 	level.ID = uuid.Nil
 	var insertedLevel models.Level
 	post("/api/v1/tech/levels", ToJson(&level), &insertedLevel)
@@ -87,7 +87,7 @@ func Test_should_list_Levels(t *testing.T) {
 	t.Parallel()
 	var httpResCode int
 
-	levels := []models.Level{generateLevel(), generateLevel(), generateLevel()}
+	levels := []models.Level{GenerateLevel(), GenerateLevel(), GenerateLevel()}
 
 	insertedLevels := make([]models.Level, 3)
 	for idx, level := range levels {
@@ -118,26 +118,26 @@ func assertLevelExistsInList(t *testing.T, level models.Level, levels []models.L
 	}
 }
 
-func generateLevel() models.Level {
+func GenerateLevel() models.Level {
 	restInputLevel := models.Level{
 		ID: uuid.New(),
 		Category: models.Label{
 			ID:   uuid.New(),
 			En:   "Category En",
 			Fr:   "Category Fr",
-			Type: "CATEGORY",
+			Type: models.Category,
 		},
 		LevelNames: []*models.Label{
 			{
 				ID:   uuid.New(),
 				En:   "LevelNames En 1",
 				Fr:   "LevelNames Fr 1",
-				Type: "LEVEL_NAME",
+				Type: models.LevelName,
 			}, {
 				ID:   uuid.New(),
 				En:   "LevelNames En 2",
 				Fr:   "LevelNames Fr 2",
-				Type: "LEVEL_NAME",
+				Type: models.LevelName,
 			}},
 	}
 	return restInputLevel
