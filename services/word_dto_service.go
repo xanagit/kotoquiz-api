@@ -8,7 +8,7 @@ import (
 )
 
 type WordDtoService interface {
-	ListWordsIDs(ids []string) ([]uuid.UUID, error)
+	ListWordsIDs(ids []string) (*dto.WordIdsList, error)
 	ListWordsDtoByIDs(ids []string, lang string) ([]*dto.WordDTO, error)
 	ReadWord(id string, lang string) (*dto.WordDTO, error)
 }
@@ -17,22 +17,15 @@ type WordDtoServiceImpl struct {
 	Repo repositories.WordRepository
 }
 
-func (s *WordDtoServiceImpl) ListWordsIDs(ids []string) ([]uuid.UUID, error) {
+func (s *WordDtoServiceImpl) ListWordsIDs(ids []string) (*dto.WordIdsList, error) {
 	var wordIDs []uuid.UUID
 
-	//if ids == nil || len(ids) == 0 {
-	//	err := s.Repo.ListWordsIDs(&wordIDs)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//} else {
 	err := s.Repo.ListWordsIDsByIds(ids, &wordIDs)
 	if err != nil {
 		return nil, err
 	}
-	//}
-
-	return wordIDs, nil
+	wordIdsList := dto.WordIdsList{Ids: wordIDs}
+	return &wordIdsList, nil
 }
 
 func (s *WordDtoServiceImpl) ListWordsDtoByIDs(ids []string, lang string) ([]*dto.WordDTO, error) {

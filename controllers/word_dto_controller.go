@@ -17,16 +17,21 @@ type WordDtoControllerImpl struct {
 }
 
 func (s *WordDtoControllerImpl) ListWordsIDs(c *gin.Context) {
+	// TODO : A corriger. Ajouter un possibilité de limiter le nombre de résultats (randomiser les résultats dans ce cas)
+	// Query params :
+	// tags : []uuid.UUID
+	// levelNameIds : []uuid.UUID
 	ids := getQueryParamIds(c)
-	words, err := s.WordDtoService.ListWordsIDs(ids)
+	wordIdsList, err := s.WordDtoService.ListWordsIDs(ids)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, words)
+	c.JSON(http.StatusOK, wordIdsList)
 }
 
 func (s *WordDtoControllerImpl) ListDtoWords(c *gin.Context) {
+	// TODO : Ajouter requête paginée
 	ids := getQueryParamIds(c) // Récupère les IDs depuis le paramètre de requête
 	lang := getQueryParamLang(c)
 

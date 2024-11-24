@@ -25,6 +25,7 @@ func (r *WordRepositoryImpl) ListWordsIDsByIds(ids []string, wordIDs *[]uuid.UUI
 
 func (r *WordRepositoryImpl) ListWordsByIds(ids []string) ([]*models.Word, error) {
 	var words []*models.Word
+	// TODO : réécrire la requête pour ne pas utiliser de preload. Utiliser de la pagination ?
 	result := r.DB.
 		Preload("Tags").
 		Preload("Levels.Category").

@@ -39,6 +39,7 @@ func GinHandlers(db *gorm.DB) *gin.Engine {
 	r := gin.Default()
 	appUserGroup := r.Group("/api/v1/app")
 	{
+		appUserGroup.GET("/words/q", wordDtoController.ListWordsIDs)
 		appUserGroup.GET("/words", wordDtoController.ListDtoWords)    // query param: ids, lang
 		appUserGroup.GET("/words/:id", wordDtoController.ReadDtoWord) // query param: lang
 		appUserGroup.GET("/tags", tagController.ListTags)

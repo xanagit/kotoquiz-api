@@ -20,7 +20,7 @@ func mapWordToDTO(word *models.Word, lang string) *dto.WordDTO {
 	mappedTranslation := extractLabel(&word.Translation, lang)
 
 	// Filtrer les Levels
-	var mappedLevels []dto.LevelDTO
+	var mappedLevels []*dto.LevelDTO
 	for _, level := range word.Levels {
 		// Filtrer la catégorie en string
 		mappedCategory := extractLabel(&level.Category, lang)
@@ -32,7 +32,7 @@ func mapWordToDTO(word *models.Word, lang string) *dto.WordDTO {
 		}
 
 		// Construire un LevelDTO
-		mappedLevels = append(mappedLevels, dto.LevelDTO{
+		mappedLevels = append(mappedLevels, &dto.LevelDTO{
 			Category:   mappedCategory,
 			LevelNames: mappedLevelNames,
 		})

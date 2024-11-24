@@ -4,7 +4,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/xanagit/kotoquiz-api/models"
-	"go.uber.org/zap"
 	"net/http"
 	"strconv"
 	"testing"
@@ -27,14 +26,12 @@ func Test_should_read_level(t *testing.T) {
 	t.Parallel()
 
 	level := GenerateLevel()
-	logger.Info("==> level", zap.Any("level", level))
 	var insertedLevel models.Level
 	httpResCode := post("/api/v1/tech/levels", ToJson(&level), &insertedLevel)
 
 	assert.Equal(t, http.StatusCreated, httpResCode)
 	var fetchedLevel models.Level
 	httpResCode = get("/api/v1/tech/levels/"+insertedLevel.ID.String(), &fetchedLevel)
-	logger.Info("fetchedLevel", zap.Any("fetchedLevel", fetchedLevel))
 
 	assert.Equal(t, http.StatusOK, httpResCode)
 	assert.Equal(t, insertedLevel.ID, fetchedLevel.ID)

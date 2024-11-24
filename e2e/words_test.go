@@ -4,7 +4,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/xanagit/kotoquiz-api/models"
-	"go.uber.org/zap"
 	"net/http"
 	"strconv"
 	"testing"
@@ -13,7 +12,7 @@ import (
 func Test_should_create_word(t *testing.T) {
 	t.Parallel()
 
-	word := generateWord()
+	word := GenerateWord()
 	word.Translation.Type = ""
 	var resWord models.Word
 	httpResCode := post("/api/v1/tech/words", ToJson(&word), &resWord)
@@ -28,14 +27,13 @@ func Test_should_create_word(t *testing.T) {
 func Test_should_read_word(t *testing.T) {
 	t.Parallel()
 
-	word := generateWord()
+	word := GenerateWord()
 	var insertedWord models.Word
 	httpResCode := post("/api/v1/tech/words", ToJson(&word), &insertedWord)
 
 	assert.Equal(t, http.StatusCreated, httpResCode)
 	var fetchedWord models.Word
 	httpResCode = get("/api/v1/tech/words/"+insertedWord.ID.String(), &fetchedWord)
-	logger.Info("fetchedWord", zap.Any("fetchedWord", fetchedWord))
 
 	assert.Equal(t, http.StatusOK, httpResCode)
 	assert.Equal(t, insertedWord.ID, fetchedWord.ID)
@@ -45,7 +43,7 @@ func Test_should_read_word(t *testing.T) {
 func Test_should_update_word(t *testing.T) {
 	t.Parallel()
 
-	word := generateWord()
+	word := GenerateWord()
 	word.ID = uuid.Nil
 	var insertedTag models.Word
 	post("/api/v1/tech/words", ToJson(&word), &insertedTag)
@@ -81,7 +79,7 @@ func Test_should_update_word(t *testing.T) {
 func Test_should_delete_word(t *testing.T) {
 	t.Parallel()
 
-	word := generateWord()
+	word := GenerateWord()
 	word.ID = uuid.Nil
 	var insertedWord models.Word
 	post("/api/v1/tech/words", ToJson(&word), &insertedWord)
@@ -119,7 +117,7 @@ func Test_should_list_Words(t *testing.T) {
 	t.Parallel()
 	var httpResCode int
 
-	words := []models.Word{generateWord(), generateWord(), generateWord()}
+	words := []models.Word{GenerateWord(), GenerateWord(), GenerateWord()}
 
 	insertedWords := make([]models.Word, 3)
 	for idx, word := range words {
@@ -141,12 +139,12 @@ func Test_should_list_Words(t *testing.T) {
 		assert.Equal(t, http.StatusCreated, httpResCode)
 	}
 
-	var fetchedTags []models.Word
-	httpResCode = get("/api/v1/app/words", &fetchedTags)
+	var fetchedWords []models.Word
+	httpResCode = get("/api/v1/app/words", &fetchedWords)
 	assert.Equal(t, http.StatusOK, httpResCode)
 
 	for _, word := range insertedWords {
-		assertWordExistsInList(t, word, fetchedTags)
+		assertWordExistsInList(t, word, fetchedWords)
 	}
 }
 
@@ -158,7 +156,7 @@ func assertWordExistsInList(t *testing.T, word models.Word, words []models.Word)
 	}
 }
 
-func generateWord() models.Word {
+func GenerateWord() models.Word {
 	levels := []models.Level{GenerateLevel(), GenerateLevel(), GenerateLevel()}
 	restInputWord := models.Word{
 		ID:       uuid.New(),
