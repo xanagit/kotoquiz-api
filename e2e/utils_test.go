@@ -15,7 +15,7 @@ func get[T any](url string, model *T) int {
 
 	err := json.Unmarshal(w.Body.Bytes(), model)
 	if err != nil {
-		panic("Could not unmarshall json")
+		logger.Error("Could not unmarshall json")
 	}
 
 	return w.Code
@@ -28,7 +28,7 @@ func post[T any](url string, jsonData string, model *T) int {
 
 	err := json.Unmarshal(w.Body.Bytes(), model)
 	if err != nil {
-		panic("Could not unmarshall json")
+		logger.Error("Could not unmarshall json")
 	}
 	logger.Info("label", zap.Any("model", model))
 
@@ -42,7 +42,7 @@ func put[T any](url string, jsonData string, model *T) int {
 
 	err := json.Unmarshal(w.Body.Bytes(), model)
 	if err != nil {
-		panic("Could not unmarshall json")
+		logger.Error("Could not unmarshall json")
 	}
 	logger.Info("label", zap.Any("model", model))
 

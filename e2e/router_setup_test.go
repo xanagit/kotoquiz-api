@@ -140,11 +140,20 @@ func setupRouter() (*gin.Engine, error) {
 func TestMain(m *testing.M) {
 	initLogger()
 	defer func(logger *zap.Logger) {
-		err := logger.Sync()
-		if err != nil {
-			panic("Failed to sync logger")
-		}
+		_ = logger.Sync()
 	}(logger)
+
+	defer func() {
+		// recover from panic if one occurred. Set err to nil otherwise.
+		if recover() != nil {
+			logger.Error("An error occured during tests")
+			logger.Info("Stopping PostgreSQL container...")
+			err := stopPostgresContainer()
+			if err != nil {
+				logger.Error("Failed to stop PostgreSQL container", zap.Error(err))
+			}
+		}
+	}()
 
 	var err error
 	router, err = setupRouter()
@@ -156,6 +165,7 @@ func TestMain(m *testing.M) {
 
 	// Exécution des tests
 	exitCode := m.Run()
+	print(exitCode)
 
 	// Nettoyage après l'exécution des tests
 	logger.Info("Stopping PostgreSQL container...")
