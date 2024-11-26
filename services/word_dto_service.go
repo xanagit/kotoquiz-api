@@ -2,13 +2,12 @@ package services
 
 import (
 	"fmt"
-	"github.com/google/uuid"
 	"github.com/xanagit/kotoquiz-api/dto"
 	"github.com/xanagit/kotoquiz-api/repositories"
 )
 
 type WordDtoService interface {
-	ListWordsIDs(ids []string) (*dto.WordIdsList, error)
+	ListWordsIDs(tagIds []string, levelNameIds []string, limit int, offset int) (*dto.WordIdsList, error)
 	ListWordsDtoByIDs(ids []string, lang string) ([]*dto.WordDTO, error)
 	ReadWord(id string, lang string) (*dto.WordDTO, error)
 }
@@ -17,14 +16,13 @@ type WordDtoServiceImpl struct {
 	Repo repositories.WordRepository
 }
 
-func (s *WordDtoServiceImpl) ListWordsIDs(ids []string) (*dto.WordIdsList, error) {
-	var wordIDs []uuid.UUID
+func (s *WordDtoServiceImpl) ListWordsIDs(tagIds []string, levelNameIds []string, limit int, offset int) (*dto.WordIdsList, error) {
 
-	err := s.Repo.ListWordsIDsByIds(ids, &wordIDs)
+	wordIds, err := s.Repo.ListWordsIds(tagIds, levelNameIds, limit, offset)
 	if err != nil {
 		return nil, err
 	}
-	wordIdsList := dto.WordIdsList{Ids: wordIDs}
+	wordIdsList := dto.WordIdsList{Ids: wordIds}
 	return &wordIdsList, nil
 }
 

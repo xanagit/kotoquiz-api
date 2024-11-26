@@ -7,7 +7,7 @@ import (
 )
 
 type WordRepository interface {
-	ListWordsIDsByIds(ids []string, wordIDs *[]uuid.UUID) error
+	ListWordsIds(tagIds []string, levelNameIds []string, limit int, offset int) ([]string, error)
 	ListWordsByIds(ids []string) ([]*models.Word, error)
 	ReadWord(id string) (*models.Word, error)
 	CreateWord(word *models.Word) error
@@ -19,8 +19,34 @@ type WordRepositoryImpl struct {
 	DB *gorm.DB
 }
 
-func (r *WordRepositoryImpl) ListWordsIDsByIds(ids []string, wordIDs *[]uuid.UUID) error {
-	return r.DB.Model(&models.Word{}).Where("id IN ?", ids).Pluck("id", wordIDs).Error
+func (r *WordRepositoryImpl) ListWordsIds(tagIds []string, levelNameIds []string, limit int, offset int) ([]string, error) {
+	var wordIDs []string
+
+	query := r.DB.Table("words w").
+		Select("DISTINCT w.id")
+	if len(tagIds) > 0 {
+		query.
+			Joins("JOIN word_tag wt ON wt.word_id = w.id").
+			Joins("JOIN labels t ON t.id = wt.label_id").
+			Where("t.id IN ?", tagIds)
+	}
+	if len(levelNameIds) > 0 {
+		query.
+			Joins("JOIN word_level wl ON wl.word_id = w.id").
+			Joins("JOIN level l ON l.id = wl.level_id").
+			Joins("JOIN level_values lv ON lv.level_id = l.id").
+			Where("lv.label_id IN ?", levelNameIds)
+	}
+	query.
+		Limit(limit).
+		Offset(offset)
+
+	err := query.Scan(&wordIDs).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return wordIDs, nil
 }
 
 func (r *WordRepositoryImpl) ListWordsByIds(ids []string) ([]*models.Word, error) {

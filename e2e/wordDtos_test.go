@@ -9,14 +9,26 @@ import (
 	"testing"
 )
 
+func Test_should_list_word_ids(t *testing.T) {
+	t.Parallel()
+
+	word := GenerateWord()
+	var insertedWord models.Word
+	httpResCode := post("/api/v1/tech/words", ToJson(&word), &insertedWord)
+	assert.Equal(t, http.StatusCreated, httpResCode)
+
+	var wordsIds dto.WordIdsList
+	httpResCode = get("/api/v1/app/words/"+insertedWord.ID.String()+"?lang=fr", &wordsIds)
+}
+
 func Test_should_read_wordDto(t *testing.T) {
 	t.Parallel()
 
 	word := GenerateWord()
 	var insertedWord models.Word
 	httpResCode := post("/api/v1/tech/words", ToJson(&word), &insertedWord)
-
 	assert.Equal(t, http.StatusCreated, httpResCode)
+
 	var fetchedWordDto dto.WordDTO
 	httpResCode = get("/api/v1/app/words/"+insertedWord.ID.String()+"?lang=fr", &fetchedWordDto)
 
@@ -67,14 +79,16 @@ func Test_should_list_WordDtoIds(t *testing.T) {
 		assert.Equal(t, http.StatusCreated, httpResCode)
 	}
 
-	wIds := insertedWords[0].ID.String() + "," + insertedWords[1].ID.String() + "," + insertedWords[2].ID.String()
 	var fetchedWordDtoIdsList dto.WordIdsList
-	httpResCode = get("/api/v1/app/words?lang=fr&ids="+wIds, &fetchedWordDtoIdsList)
+	tId := insertedWords[0].Tags[0].ID.String()
+	println("==>tag id:" + tId)
+	httpResCode = get("/api/v1/app/words/q?lang=fr&tags="+insertedWords[0].Tags[0].ID.String(), &fetchedWordDtoIdsList)
 	assert.Equal(t, http.StatusOK, httpResCode)
 	assert.Equal(t, 3, len(fetchedWordDtoIdsList.Ids))
 	assert.Contains(t, fetchedWordDtoIdsList.Ids, insertedWords[0].ID)
 	assert.Contains(t, fetchedWordDtoIdsList.Ids, insertedWords[1].ID)
 	assert.Contains(t, fetchedWordDtoIdsList.Ids, insertedWords[2].ID)
+
 }
 
 func Test_should_list_WordDtos(t *testing.T) {

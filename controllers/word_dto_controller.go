@@ -21,8 +21,13 @@ func (s *WordDtoControllerImpl) ListWordsIDs(c *gin.Context) {
 	// Query params :
 	// tags : []uuid.UUID
 	// levelNameIds : []uuid.UUID
-	ids := getQueryParamIds(c)
-	wordIdsList, err := s.WordDtoService.ListWordsIDs(ids)
+	tagIds := getQueryParamList(c, "tags")
+	levelNameIds := getQueryParamList(c, "levelNames")
+	limit, _ := getQueryParamInt(c, "limit", 10)
+	offset, _ := getQueryParamInt(c, "offset", 0)
+
+	wordIdsList, err := s.WordDtoService.ListWordsIDs(tagIds, levelNameIds, limit, offset)
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -32,7 +37,7 @@ func (s *WordDtoControllerImpl) ListWordsIDs(c *gin.Context) {
 
 func (s *WordDtoControllerImpl) ListDtoWords(c *gin.Context) {
 	// TODO : Ajouter requête paginée
-	ids := getQueryParamIds(c) // Récupère les IDs depuis le paramètre de requête
+	ids := getQueryParamList(c, "ids") // Récupère les IDs depuis le paramètre de requête
 	lang := getQueryParamLang(c)
 
 	var words []*dto.WordDTO
