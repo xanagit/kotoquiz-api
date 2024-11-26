@@ -33,7 +33,7 @@ func (r *WordRepositoryImpl) ListWordsIds(tagIds []string, levelNameIds []string
 	if len(levelNameIds) > 0 {
 		query.
 			Joins("JOIN word_level wl ON wl.word_id = w.id").
-			Joins("JOIN level l ON l.id = wl.level_id").
+			Joins("JOIN levels l ON l.id = wl.level_id").
 			Joins("JOIN level_values lv ON lv.level_id = l.id").
 			Where("lv.label_id IN ?", levelNameIds)
 	}
