@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/xanagit/kotoquiz-api/dto"
 	"github.com/xanagit/kotoquiz-api/repositories"
 	"math/rand"
@@ -10,7 +11,7 @@ import (
 
 type WordDtoService interface {
 	ListWordsIDs(tagIds []string, levelNameIds []string, nb int) (*dto.WordIdsList, error)
-	ListWordsDtoByIDs(ids []string, lang string) ([]*dto.WordDTO, error)
+	ListWordsDtoByIDs(ids []uuid.UUID, lang string) ([]*dto.WordDTO, error)
 	ReadWord(id string, lang string) (*dto.WordDTO, error)
 }
 
@@ -28,7 +29,7 @@ func (s *WordDtoServiceImpl) ListWordsIDs(tagIds []string, levelNameIds []string
 	return &wordIdsList, nil
 }
 
-func (s *WordDtoServiceImpl) ListWordsDtoByIDs(ids []string, lang string) ([]*dto.WordDTO, error) {
+func (s *WordDtoServiceImpl) ListWordsDtoByIDs(ids []uuid.UUID, lang string) ([]*dto.WordDTO, error) {
 	if ids == nil || len(ids) == 0 {
 		return nil, fmt.Errorf("no IDs provided")
 	}

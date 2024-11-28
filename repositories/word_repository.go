@@ -8,7 +8,7 @@ import (
 
 type WordRepository interface {
 	ListWordsIds(tagIds []string, levelNameIds []string, nb int) ([]string, error)
-	ListWordsByIds(ids []string) ([]*models.Word, error)
+	ListWordsByIds(ids []uuid.UUID) ([]*models.Word, error)
 	ReadWord(id string) (*models.Word, error)
 	CreateWord(word *models.Word) error
 	UpdateWord(word *models.Word) error
@@ -49,7 +49,7 @@ func (r *WordRepositoryImpl) ListWordsIds(tagIds []string, levelNameIds []string
 	return wordIDs, nil
 }
 
-func (r *WordRepositoryImpl) ListWordsByIds(ids []string) ([]*models.Word, error) {
+func (r *WordRepositoryImpl) ListWordsByIds(ids []uuid.UUID) ([]*models.Word, error) {
 	var words []*models.Word
 	// TODO : réécrire la requête pour ne pas utiliser de preload. Utiliser de la pagination ?
 	result := r.DB.

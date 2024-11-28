@@ -9,6 +9,27 @@ import (
 	"strings"
 )
 
+type defaultValues struct {
+	Lang        string
+	NbIdsList   int
+	LimitWords  int
+	OffsetWords int
+}
+
+const (
+	DefaultLang        = "en"
+	DefaultNbIdsList   = 30
+	DefaultLimitWords  = 15
+	DefaultOffsetWords = 0
+)
+
+var DefaultQpVals = defaultValues{
+	Lang:        DefaultLang,
+	NbIdsList:   DefaultNbIdsList,
+	LimitWords:  DefaultLimitWords,
+	OffsetWords: DefaultOffsetWords,
+}
+
 func FromStrToUuid(id string) uuid.UUID {
 	parsed, err := uuid.Parse(id)
 	if err != nil {
@@ -45,7 +66,7 @@ func getQueryParamInt(c *gin.Context, paramName string, defaultValue int) (int, 
 func getQueryParamLang(c *gin.Context) string {
 	lang := c.Query("lang")
 	if lang == "" {
-		lang = "en"
+		lang = DefaultQpVals.Lang
 	}
 	return lang
 }
