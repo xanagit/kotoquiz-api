@@ -6,6 +6,7 @@ import (
 	"github.com/xanagit/kotoquiz-api/models"
 	"net/http"
 	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -89,31 +90,13 @@ func Test_should_list_WordDtos(t *testing.T) {
 	t.Parallel()
 	var httpResCode int
 
-	//words := []models.Word{GenerateWord(), GenerateWord(), GenerateWord()}
-	//
-	//insertedWords := make([]models.Word, 3)
-	//for idx, word := range words {
-	//	word.Translation.En = "En" + strconv.Itoa(idx)
-	//	word.Translation.Fr = "Fr" + strconv.Itoa(idx)
-	//	for idx, t := range word.Tags {
-	//		t.En = "Tag En " + strconv.Itoa(idx)
-	//		t.Fr = "Tag Fr " + strconv.Itoa(idx)
-	//	}
-	//	for idx, l := range word.Levels {
-	//		l.Category.En = "Category En " + strconv.Itoa(idx)
-	//		l.Category.Fr = "Category Fr " + strconv.Itoa(idx)
-	//		for idx, ln := range l.LevelNames {
-	//			ln.En = "LevelNames En " + strconv.Itoa(idx)
-	//			ln.Fr = "LevelNames Fr " + strconv.Itoa(idx)
-	//		}
-	//	}
-	//	httpResCode = post("/api/v1/tech/words", ToJson(&word), &insertedWords[idx])
-	//	assert.Equal(t, http.StatusCreated, httpResCode)
-	//}
-
 	insertedWords := insertWordsDatasetForListDtoIds(t, 3)
 
-	wIds := insertedWords[0].ID.String() + "," + insertedWords[1].ID.String() + "," + insertedWords[2].ID.String()
+	ids := make([]string, len(insertedWords))
+	for i, w := range insertedWords {
+		ids[i] = w.ID.String()
+	}
+	wIds := strings.Join(ids, ",")
 	var fetchedWordDtos []dto.WordDTO
 	httpResCode = get("/api/v1/app/words?lang=fr&ids="+wIds, &fetchedWordDtos)
 	assert.Equal(t, http.StatusOK, httpResCode)
@@ -137,11 +120,11 @@ func assertWordExistsInWordDtoList(t *testing.T, word *models.Word, wordDtos []d
 				assert.Equal(t, tag.Fr, currWordDto.Tags[idx])
 			}
 			assert.Equal(t, len(word.Levels), len(currWordDto.Levels))
-			for idx, level := range word.Levels {
-				assert.Equal(t, level.Category.Fr, currWordDto.Levels[idx].Category)
-				assert.Equal(t, len(level.LevelNames), len(currWordDto.Levels[idx].LevelNames))
-				for idx, levelName := range level.LevelNames {
-					assert.Equal(t, levelName.Fr, currWordDto.Levels[idx].LevelNames[idx])
+			for idxLevel, level := range word.Levels {
+				assert.Equal(t, level.Category.Fr, currWordDto.Levels[idxLevel].Category)
+				assert.Equal(t, len(level.LevelNames), len(currWordDto.Levels[idxLevel].LevelNames))
+				for idxLevelName, levelName := range level.LevelNames {
+					assert.Equal(t, levelName.Fr, currWordDto.Levels[idxLevel].LevelNames[idxLevelName])
 				}
 			}
 		}
