@@ -83,21 +83,15 @@ func DatabaseConnection(dsn string) (*gorm.DB, error) {
 	}
 
 	// Auto-migrate the models to keep the schema in sync
-	err = db.AutoMigrate(&models.Label{}, &models.Word{}, &models.Level{})
+	err = db.AutoMigrate(&models.Label{}, &models.Word{}, &models.Level{}, &models.WordTag{}, &models.WordLevel{})
 	if err != nil {
 		log.Fatal("failed to migrate database:", err)
 	}
 	return db, err
 }
 
-// Endpoints à implémenter
+// TODO :Endpoints à implémenter
 //POST /levels/{id}/words {"words": ["uuid1", "uuid2"]} Ajouter des mots à un level
 //DELETE /levels/{id}/words {"words": ["uuid1", "uuid2"]} Retirer des mots à un level
 
-// Ne pense pas implémenter :
-// GET /level-names (liste levelNames)
-// CRUD /labels (/tags devrait suffire)
-// POST /words/{id}/tags {"tags": ["uuid1", "uuid2"]} Ajouter des tags à un mot → peut être géré en mettant à jour word
-// DELETE /words/{id}/tags {"tags": ["uuid1", "uuid2"]} Retirer des tags à un mot → peut être géré en mettant à jour word
-//
 //Validation via middleware github.com/go-playground/validator

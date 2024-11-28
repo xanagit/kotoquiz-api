@@ -21,8 +21,8 @@ type Word struct {
 	TranslationID uuid.UUID `gorm:"type:uuid" json:"-"`
 
 	Translation Label    `gorm:"foreignKey:TranslationID" json:"translation"`
-	Tags        []*Label `gorm:"many2many:word_tag;" json:"tags"`
-	Levels      []*Level `gorm:"many2many:word_level;" json:"levels"`
+	Tags        []*Label `gorm:"many2many:word_tag;joinForeignKey:WordID;joinReferences:LabelID" json:"tags"`
+	Levels      []*Level `gorm:"many2many:word_level;joinForeignKey:WordID;joinReferences:LevelID" json:"levels"`
 }
 
 // BeforeDelete est un hook GORM qui sera appelé automatiquement avant la suppression
