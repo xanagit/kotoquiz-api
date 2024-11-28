@@ -5,8 +5,17 @@ import (
 	"gorm.io/gorm"
 )
 
+type LevelType string
+
+const (
+	BuiltIn     LevelType = "BUILT_IN_LEVEL"
+	CustomLevel LevelType = "CUSTOM_LEVEL"
+)
+
 type Level struct {
-	ID         uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+	ID   uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+	Type LevelType `gorm:"size:100" json:"type"`
+	// TODO : ajouter une fk vers un user s'il s'agit de la liste d'un user
 	CategoryID uuid.UUID `gorm:"type:uuid" json:"-"`
 
 	Category   Label    `gorm:"foreignKey:CategoryID" json:"category"`

@@ -56,7 +56,7 @@ func Test_should_read_wordDto(t *testing.T) {
 func Test_should_list_WordDtoIds_corresponding_to_provided_tag_ids(t *testing.T) {
 	t.Parallel()
 
-	insertedWords := insertWordsDatasetForListDtoIds(t)
+	insertedWords := insertWordsDatasetForListDtoIds(t, 3)
 
 	var fetchedWordDtoIdsList dto.WordIdsList
 	httpResCode := get("/api/v1/app/words/q?lang=fr&tags="+insertedWords[0].Tags[0].ID.String(), &fetchedWordDtoIdsList)
@@ -72,7 +72,7 @@ func Test_should_list_WordDtoIds_corresponding_to_provided_tag_ids(t *testing.T)
 func Test_should_list_WordDtoIds_corresponding_to_provided_levelNamesIds_ids(t *testing.T) {
 	t.Parallel()
 
-	insertedWords := insertWordsDatasetForListDtoIds(t)
+	insertedWords := insertWordsDatasetForListDtoIds(t, 3)
 
 	var fetchedWordDtoIdsForLevelsList dto.WordIdsList
 	httpResCode := get("/api/v1/app/words/q?lang=fr&levelNames="+insertedWords[0].Levels[0].LevelNames[0].ID.String(), &fetchedWordDtoIdsForLevelsList)
@@ -89,27 +89,29 @@ func Test_should_list_WordDtos(t *testing.T) {
 	t.Parallel()
 	var httpResCode int
 
-	words := []models.Word{GenerateWord(), GenerateWord(), GenerateWord()}
+	//words := []models.Word{GenerateWord(), GenerateWord(), GenerateWord()}
+	//
+	//insertedWords := make([]models.Word, 3)
+	//for idx, word := range words {
+	//	word.Translation.En = "En" + strconv.Itoa(idx)
+	//	word.Translation.Fr = "Fr" + strconv.Itoa(idx)
+	//	for idx, t := range word.Tags {
+	//		t.En = "Tag En " + strconv.Itoa(idx)
+	//		t.Fr = "Tag Fr " + strconv.Itoa(idx)
+	//	}
+	//	for idx, l := range word.Levels {
+	//		l.Category.En = "Category En " + strconv.Itoa(idx)
+	//		l.Category.Fr = "Category Fr " + strconv.Itoa(idx)
+	//		for idx, ln := range l.LevelNames {
+	//			ln.En = "LevelNames En " + strconv.Itoa(idx)
+	//			ln.Fr = "LevelNames Fr " + strconv.Itoa(idx)
+	//		}
+	//	}
+	//	httpResCode = post("/api/v1/tech/words", ToJson(&word), &insertedWords[idx])
+	//	assert.Equal(t, http.StatusCreated, httpResCode)
+	//}
 
-	insertedWords := make([]models.Word, 3)
-	for idx, word := range words {
-		word.Translation.En = "En" + strconv.Itoa(idx)
-		word.Translation.Fr = "Fr" + strconv.Itoa(idx)
-		for idx, t := range word.Tags {
-			t.En = "Tag En " + strconv.Itoa(idx)
-			t.Fr = "Tag Fr " + strconv.Itoa(idx)
-		}
-		for idx, l := range word.Levels {
-			l.Category.En = "Category En " + strconv.Itoa(idx)
-			l.Category.Fr = "Category Fr " + strconv.Itoa(idx)
-			for idx, ln := range l.LevelNames {
-				ln.En = "LevelNames En " + strconv.Itoa(idx)
-				ln.Fr = "LevelNames Fr " + strconv.Itoa(idx)
-			}
-		}
-		httpResCode = post("/api/v1/tech/words", ToJson(&word), &insertedWords[idx])
-		assert.Equal(t, http.StatusCreated, httpResCode)
-	}
+	insertedWords := insertWordsDatasetForListDtoIds(t, 3)
 
 	wIds := insertedWords[0].ID.String() + "," + insertedWords[1].ID.String() + "," + insertedWords[2].ID.String()
 	var fetchedWordDtos []dto.WordDTO
@@ -121,7 +123,7 @@ func Test_should_list_WordDtos(t *testing.T) {
 	}
 }
 
-func assertWordExistsInWordDtoList(t *testing.T, word models.Word, wordDtos []dto.WordDTO) {
+func assertWordExistsInWordDtoList(t *testing.T, word *models.Word, wordDtos []dto.WordDTO) {
 	for _, currWordDto := range wordDtos {
 		if currWordDto.ID == word.ID {
 			assert.Equal(t, word.ID, currWordDto.ID)
@@ -146,9 +148,9 @@ func assertWordExistsInWordDtoList(t *testing.T, word models.Word, wordDtos []dt
 	}
 }
 
-func insertWordsDatasetForListDtoIds(t *testing.T) []*models.Word {
+func insertWordsDatasetForListDtoIds(t *testing.T, nb int) []*models.Word {
 	var words []*models.Word
-	for i := 0; i < 3; i++ {
+	for i := 0; i < nb; i++ {
 		word := GenerateWord()
 		words = append(words, &word)
 	}

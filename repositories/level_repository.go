@@ -8,10 +8,10 @@ import (
 
 type LevelRepository interface {
 	ListLevels() ([]*models.Level, error)
-	ReadLevel(id string) (*models.Level, error)
+	ReadLevel(id uuid.UUID) (*models.Level, error)
 	CreateLevel(word *models.Level) error
 	UpdateLevel(word *models.Level) error
-	DeleteLevel(id string) error
+	DeleteLevel(id uuid.UUID) error
 }
 
 type LevelRepositoryImpl struct {
@@ -24,7 +24,7 @@ func (r *LevelRepositoryImpl) ListLevels() ([]*models.Level, error) {
 	return labels, result.Error
 }
 
-func (r *LevelRepositoryImpl) ReadLevel(id string) (*models.Level, error) {
+func (r *LevelRepositoryImpl) ReadLevel(id uuid.UUID) (*models.Level, error) {
 	var label models.Level
 	result := r.DB.Preload("LevelNames").Preload("Category").First(&label, "id = ?", id)
 	return &label, result.Error
@@ -38,7 +38,7 @@ func (r *LevelRepositoryImpl) UpdateLevel(label *models.Level) error {
 	return r.DB.Save(label).Error
 }
 
-func (r *LevelRepositoryImpl) DeleteLevel(id string) error {
+func (r *LevelRepositoryImpl) DeleteLevel(id uuid.UUID) error {
 	//if err := r.DB.Where("id = ?", id).Delete(&models.Level{}).Error; err != nil {
 	//	return err
 	//}

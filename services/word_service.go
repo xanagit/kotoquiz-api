@@ -7,17 +7,17 @@ import (
 )
 
 type WordService interface {
-	ReadWord(id string) (*models.Word, error)
+	ReadWord(id uuid.UUID) (*models.Word, error)
 	CreateWord(word *models.Word) error
 	UpdateWord(word *models.Word) error
-	DeleteWord(id string) error
+	DeleteWord(id uuid.UUID) error
 }
 
 type WordServiceImpl struct {
 	Repo repositories.WordRepository
 }
 
-func (s *WordServiceImpl) ReadWord(id string) (*models.Word, error) {
+func (s *WordServiceImpl) ReadWord(id uuid.UUID) (*models.Word, error) {
 	return s.Repo.ReadWord(id)
 }
 
@@ -40,6 +40,6 @@ func (s *WordServiceImpl) UpdateWord(word *models.Word) error {
 	return s.Repo.UpdateWord(word)
 }
 
-func (s *WordServiceImpl) DeleteWord(id string) error {
+func (s *WordServiceImpl) DeleteWord(id uuid.UUID) error {
 	return s.Repo.DeleteWord(id)
 }

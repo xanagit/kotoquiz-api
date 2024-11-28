@@ -7,19 +7,19 @@ import (
 )
 
 type WordRepository interface {
-	ListWordsIds(tagIds []string, levelNameIds []string, limit int, offset int) ([]string, error)
-	ListWordsByIds(ids []string) ([]*models.Word, error)
-	ReadWord(id string) (*models.Word, error)
+	ListWordsIds(tagIds []string, levelNameIds []string, nb int) ([]string, error)
+	ListWordsByIds(ids []uuid.UUID) ([]*models.Word, error)
+	ReadWord(id uuid.UUID) (*models.Word, error)
 	CreateWord(word *models.Word) error
 	UpdateWord(word *models.Word) error
-	DeleteWord(id string) error
+	DeleteWord(id uuid.UUID) error
 }
 
 type WordRepositoryImpl struct {
 	DB *gorm.DB
 }
 
-func (r *WordRepositoryImpl) ListWordsIds(tagIds []string, levelNameIds []string, limit int, offset int) ([]string, error) {
+func (r *WordRepositoryImpl) ListWordsIds(tagIds []string, levelNameIds []string, nb int) ([]string, error) {
 	var wordIDs []string
 
 	query := r.DB.Table("words w").
@@ -37,9 +37,9 @@ func (r *WordRepositoryImpl) ListWordsIds(tagIds []string, levelNameIds []string
 			Joins("JOIN level_values lv ON lv.level_id = l.id").
 			Where("lv.label_id IN ?", levelNameIds)
 	}
-	query.
-		Limit(limit).
-		Offset(offset)
+	if nb > 0 {
+		query.Limit(nb)
+	}
 
 	err := query.Scan(&wordIDs).Error
 	if err != nil {
@@ -49,7 +49,7 @@ func (r *WordRepositoryImpl) ListWordsIds(tagIds []string, levelNameIds []string
 	return wordIDs, nil
 }
 
-func (r *WordRepositoryImpl) ListWordsByIds(ids []string) ([]*models.Word, error) {
+func (r *WordRepositoryImpl) ListWordsByIds(ids []uuid.UUID) ([]*models.Word, error) {
 	var words []*models.Word
 	// TODO : réécrire la requête pour ne pas utiliser de preload. Utiliser de la pagination ?
 	result := r.DB.
@@ -61,7 +61,7 @@ func (r *WordRepositoryImpl) ListWordsByIds(ids []string) ([]*models.Word, error
 	return words, result.Error
 }
 
-func (r *WordRepositoryImpl) ReadWord(id string) (*models.Word, error) {
+func (r *WordRepositoryImpl) ReadWord(id uuid.UUID) (*models.Word, error) {
 	var word models.Word
 	result := r.DB.Preload("Translation").Preload("Tags").Preload("Levels").Preload("Levels.Category").Preload("Levels.LevelNames").First(&word, "id = ?", id)
 	return &word, result.Error
@@ -75,7 +75,7 @@ func (r *WordRepositoryImpl) UpdateWord(word *models.Word) error {
 	return r.DB.Save(word).Error
 }
 
-func (r *WordRepositoryImpl) DeleteWord(id string) error {
+func (r *WordRepositoryImpl) DeleteWord(id uuid.UUID) error {
 	return r.DB.Transaction(func(tx *gorm.DB) error {
 		var word models.Word
 		// Charger le word avec ses associations

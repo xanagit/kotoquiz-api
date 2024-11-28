@@ -19,7 +19,12 @@ type WordControllerImpl struct {
 }
 
 func (s *WordControllerImpl) ReadWord(c *gin.Context) {
-	id := c.Param("id")
+	rawId := c.Param("id")
+	id, ok := parseUUID(rawId)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid UUID format"})
+		return
+	}
 	word, err := s.Service.ReadWord(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
@@ -43,14 +48,19 @@ func (s *WordControllerImpl) CreateWord(c *gin.Context) {
 }
 
 func (s *WordControllerImpl) UpdateWord(c *gin.Context) {
-	id := c.Param("id")
+	rawId := c.Param("id")
+	id, ok := parseUUID(rawId)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid UUID format"})
+		return
+	}
 	var word models.Word
 	if err := c.ShouldBindJSON(&word); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	word.ID = FromStrToUuid(id)
+	word.ID = id
 	if err := s.Service.UpdateWord(&word); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -59,7 +69,12 @@ func (s *WordControllerImpl) UpdateWord(c *gin.Context) {
 }
 
 func (s *WordControllerImpl) DeleteWord(c *gin.Context) {
-	id := c.Param("id")
+	rawId := c.Param("id")
+	id, ok := parseUUID(rawId)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid UUID format"})
+		return
+	}
 	if err := s.Service.DeleteWord(id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

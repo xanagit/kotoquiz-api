@@ -17,16 +17,11 @@ type WordDtoControllerImpl struct {
 }
 
 func (s *WordDtoControllerImpl) ListWordsIDs(c *gin.Context) {
-	// TODO : A corriger. Ajouter un possibilité de limiter le nombre de résultats (randomiser les résultats dans ce cas)
-	// Query params :
-	// tags : []uuid.UUID
-	// levelNameIds : []uuid.UUID
 	tagIds := getQueryParamList(c, "tags")
 	levelNameIds := getQueryParamList(c, "levelNames")
-	limit, _ := getQueryParamInt(c, "limit", 10)
-	offset, _ := getQueryParamInt(c, "offset", 0)
+	nb, _ := getQueryParamInt(c, "nb", DefaultQpVals.NbIdsList)
 
-	wordIdsList, err := s.WordDtoService.ListWordsIDs(tagIds, levelNameIds, limit, offset)
+	wordIdsList, err := s.WordDtoService.ListWordsIDs(tagIds, levelNameIds, nb)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -36,8 +31,11 @@ func (s *WordDtoControllerImpl) ListWordsIDs(c *gin.Context) {
 }
 
 func (s *WordDtoControllerImpl) ListDtoWords(c *gin.Context) {
-	// TODO : Ajouter requête paginée
-	ids := getQueryParamList(c, "ids") // Récupère les IDs depuis le paramètre de requête
+	rawIds := getQueryParamList(c, "ids") // Récupère les IDs depuis le paramètre de requête
+	ids, ok := parseUUIDs(rawIds)
+	if !ok {
+		return
+	}
 	lang := getQueryParamLang(c)
 
 	var words []*dto.WordDTO
@@ -58,7 +56,12 @@ func (s *WordDtoControllerImpl) ListDtoWords(c *gin.Context) {
 }
 
 func (s *WordDtoControllerImpl) ReadDtoWord(c *gin.Context) {
-	id := c.Param("id")
+	rawId := c.Param("id")
+	id, ok := parseUUID(rawId)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid UUID format"})
+		return
+	}
 	lang := getQueryParamLang(c)
 
 	wordDto, err := s.WordDtoService.ReadWord(id, lang)

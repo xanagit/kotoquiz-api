@@ -3,18 +3,30 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
 )
 
-func FromStrToUuid(id string) uuid.UUID {
-	parsed, err := uuid.Parse(id)
-	if err != nil {
-		log.Fatalf("Invalid UUID format: %v", err)
-	}
-	return parsed
+type defaultValues struct {
+	Lang        string
+	NbIdsList   int
+	LimitWords  int
+	OffsetWords int
+}
+
+const (
+	DefaultLang        = "en"
+	DefaultNbIdsList   = 30
+	DefaultLimitWords  = 15
+	DefaultOffsetWords = 0
+)
+
+var DefaultQpVals = defaultValues{
+	Lang:        DefaultLang,
+	NbIdsList:   DefaultNbIdsList,
+	LimitWords:  DefaultLimitWords,
+	OffsetWords: DefaultOffsetWords,
 }
 
 func getQueryParamList(c *gin.Context, paramName string) []string {
@@ -45,7 +57,27 @@ func getQueryParamInt(c *gin.Context, paramName string, defaultValue int) (int, 
 func getQueryParamLang(c *gin.Context) string {
 	lang := c.Query("lang")
 	if lang == "" {
-		lang = "en"
+		lang = DefaultQpVals.Lang
 	}
 	return lang
+}
+
+func parseUUID(id string) (uuid.UUID, bool) {
+	parsed, err := uuid.Parse(id)
+	if err != nil {
+		return uuid.Nil, false
+	}
+	return parsed, true
+}
+
+func parseUUIDs(ids []string) ([]uuid.UUID, bool) {
+	parsed := make([]uuid.UUID, len(ids))
+	for i, id := range ids {
+		currUUID, ok := parseUUID(id)
+		if !ok {
+			return nil, false
+		}
+		parsed[i] = currUUID
+	}
+	return parsed, true
 }

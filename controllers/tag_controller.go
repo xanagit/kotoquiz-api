@@ -43,7 +43,12 @@ func (tc *TagControllerImpl) CreateTag(c *gin.Context) {
 }
 
 func (tc *TagControllerImpl) ReadTag(c *gin.Context) {
-	id := c.Param("id")
+	rawId := c.Param("id")
+	id, ok := parseUUID(rawId)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid UUID format"})
+		return
+	}
 	tag, err := tc.Service.ReadLabel(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
@@ -53,13 +58,18 @@ func (tc *TagControllerImpl) ReadTag(c *gin.Context) {
 }
 
 func (tc *TagControllerImpl) UpdateTag(c *gin.Context) {
-	id := c.Param("id")
+	rawId := c.Param("id")
+	id, ok := parseUUID(rawId)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid UUID format"})
+		return
+	}
 	var tag models.Label
 	if err := c.ShouldBindJSON(&tag); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	tag.ID = FromStrToUuid(id)
+	tag.ID = id
 	if err := tc.Service.UpdateLabel(&tag); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -68,7 +78,12 @@ func (tc *TagControllerImpl) UpdateTag(c *gin.Context) {
 }
 
 func (tc *TagControllerImpl) DeleteTag(c *gin.Context) {
-	id := c.Param("id")
+	rawId := c.Param("id")
+	id, ok := parseUUID(rawId)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid UUID format"})
+		return
+	}
 	if err := tc.Service.DeleteLabel(id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

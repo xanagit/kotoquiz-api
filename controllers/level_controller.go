@@ -43,7 +43,12 @@ func (lc *LevelControllerImpl) CreateLevel(c *gin.Context) {
 }
 
 func (lc *LevelControllerImpl) ReadLevel(c *gin.Context) {
-	id := c.Param("id")
+	rawId := c.Param("id")
+	id, ok := parseUUID(rawId)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid UUID format"})
+		return
+	}
 	level, err := lc.Service.ReadLevel(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
@@ -53,13 +58,18 @@ func (lc *LevelControllerImpl) ReadLevel(c *gin.Context) {
 }
 
 func (lc *LevelControllerImpl) UpdateLevel(c *gin.Context) {
-	id := c.Param("id")
+	rawId := c.Param("id")
+	id, ok := parseUUID(rawId)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid UUID format"})
+		return
+	}
 	var level models.Level
 	if err := c.ShouldBindJSON(&level); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	level.ID = FromStrToUuid(id)
+	level.ID = id
 
 	if err := lc.Service.UpdateLevel(&level); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -69,7 +79,12 @@ func (lc *LevelControllerImpl) UpdateLevel(c *gin.Context) {
 }
 
 func (lc *LevelControllerImpl) DeleteLevel(c *gin.Context) {
-	id := c.Param("id")
+	rawId := c.Param("id")
+	id, ok := parseUUID(rawId)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid UUID format"})
+		return
+	}
 	if err := lc.Service.DeleteLevel(id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
