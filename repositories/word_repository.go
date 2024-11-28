@@ -7,7 +7,7 @@ import (
 )
 
 type WordRepository interface {
-	ListWordsIds(tagIds []string, levelNameIds []string, limit int, offset int) ([]string, error)
+	ListWordsIds(tagIds []string, levelNameIds []string, nb int) ([]string, error)
 	ListWordsByIds(ids []string) ([]*models.Word, error)
 	ReadWord(id string) (*models.Word, error)
 	CreateWord(word *models.Word) error
@@ -19,7 +19,7 @@ type WordRepositoryImpl struct {
 	DB *gorm.DB
 }
 
-func (r *WordRepositoryImpl) ListWordsIds(tagIds []string, levelNameIds []string, limit int, offset int) ([]string, error) {
+func (r *WordRepositoryImpl) ListWordsIds(tagIds []string, levelNameIds []string, nb int) ([]string, error) {
 	var wordIDs []string
 
 	query := r.DB.Table("words w").
@@ -37,9 +37,9 @@ func (r *WordRepositoryImpl) ListWordsIds(tagIds []string, levelNameIds []string
 			Joins("JOIN level_values lv ON lv.level_id = l.id").
 			Where("lv.label_id IN ?", levelNameIds)
 	}
-	query.
-		Limit(limit).
-		Offset(offset)
+	if nb > 0 {
+		query.Limit(nb)
+	}
 
 	err := query.Scan(&wordIDs).Error
 	if err != nil {
