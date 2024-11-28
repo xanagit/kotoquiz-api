@@ -8,10 +8,10 @@ import (
 
 type LabelService interface {
 	ListLabels(labelType models.LabelType) ([]*models.Label, error)
-	ReadLabel(id string) (*models.Label, error)
+	ReadLabel(id uuid.UUID) (*models.Label, error)
 	CreateLabel(label *models.Label, labelType models.LabelType) error
 	UpdateLabel(label *models.Label) error
-	DeleteLabel(id string) error
+	DeleteLabel(id uuid.UUID) error
 }
 
 type LabelServiceImpl struct {
@@ -22,7 +22,7 @@ func (s *LabelServiceImpl) ListLabels(labelType models.LabelType) ([]*models.Lab
 	return s.Repo.ListLabelsByType(labelType)
 }
 
-func (s *LabelServiceImpl) ReadLabel(id string) (*models.Label, error) {
+func (s *LabelServiceImpl) ReadLabel(id uuid.UUID) (*models.Label, error) {
 	return s.Repo.ReadLabel(id)
 }
 
@@ -36,6 +36,6 @@ func (s *LabelServiceImpl) UpdateLabel(label *models.Label) error {
 	return s.Repo.UpdateLabel(label)
 }
 
-func (s *LabelServiceImpl) DeleteLabel(id string) error {
+func (s *LabelServiceImpl) DeleteLabel(id uuid.UUID) error {
 	return s.Repo.DeleteLabel(id)
 }

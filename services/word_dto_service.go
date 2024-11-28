@@ -12,7 +12,7 @@ import (
 type WordDtoService interface {
 	ListWordsIDs(tagIds []string, levelNameIds []string, nb int) (*dto.WordIdsList, error)
 	ListWordsDtoByIDs(ids []uuid.UUID, lang string) ([]*dto.WordDTO, error)
-	ReadWord(id string, lang string) (*dto.WordDTO, error)
+	ReadWord(id uuid.UUID, lang string) (*dto.WordDTO, error)
 }
 
 type WordDtoServiceImpl struct {
@@ -49,7 +49,7 @@ func (s *WordDtoServiceImpl) ListWordsDtoByIDs(ids []uuid.UUID, lang string) ([]
 	return wordDTOs, nil
 }
 
-func (s *WordDtoServiceImpl) ReadWord(id string, lang string) (*dto.WordDTO, error) {
+func (s *WordDtoServiceImpl) ReadWord(id uuid.UUID, lang string) (*dto.WordDTO, error) {
 	word, err := s.Repo.ReadWord(id)
 	if err != nil {
 		return nil, err

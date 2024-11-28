@@ -123,7 +123,7 @@ func Test_should_list_WordDtos(t *testing.T) {
 	}
 }
 
-func assertWordExistsInWordDtoList(t *testing.T, word models.Word, wordDtos []dto.WordDTO) {
+func assertWordExistsInWordDtoList(t *testing.T, word *models.Word, wordDtos []dto.WordDTO) {
 	for _, currWordDto := range wordDtos {
 		if currWordDto.ID == word.ID {
 			assert.Equal(t, word.ID, currWordDto.ID)

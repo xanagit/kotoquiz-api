@@ -9,10 +9,10 @@ import (
 type WordRepository interface {
 	ListWordsIds(tagIds []string, levelNameIds []string, nb int) ([]string, error)
 	ListWordsByIds(ids []uuid.UUID) ([]*models.Word, error)
-	ReadWord(id string) (*models.Word, error)
+	ReadWord(id uuid.UUID) (*models.Word, error)
 	CreateWord(word *models.Word) error
 	UpdateWord(word *models.Word) error
-	DeleteWord(id string) error
+	DeleteWord(id uuid.UUID) error
 }
 
 type WordRepositoryImpl struct {
@@ -61,7 +61,7 @@ func (r *WordRepositoryImpl) ListWordsByIds(ids []uuid.UUID) ([]*models.Word, er
 	return words, result.Error
 }
 
-func (r *WordRepositoryImpl) ReadWord(id string) (*models.Word, error) {
+func (r *WordRepositoryImpl) ReadWord(id uuid.UUID) (*models.Word, error) {
 	var word models.Word
 	result := r.DB.Preload("Translation").Preload("Tags").Preload("Levels").Preload("Levels.Category").Preload("Levels.LevelNames").First(&word, "id = ?", id)
 	return &word, result.Error
@@ -75,7 +75,7 @@ func (r *WordRepositoryImpl) UpdateWord(word *models.Word) error {
 	return r.DB.Save(word).Error
 }
 
-func (r *WordRepositoryImpl) DeleteWord(id string) error {
+func (r *WordRepositoryImpl) DeleteWord(id uuid.UUID) error {
 	return r.DB.Transaction(func(tx *gorm.DB) error {
 		var word models.Word
 		// Charger le word avec ses associations

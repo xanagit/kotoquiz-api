@@ -3,7 +3,6 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -28,14 +27,6 @@ var DefaultQpVals = defaultValues{
 	NbIdsList:   DefaultNbIdsList,
 	LimitWords:  DefaultLimitWords,
 	OffsetWords: DefaultOffsetWords,
-}
-
-func FromStrToUuid(id string) uuid.UUID {
-	parsed, err := uuid.Parse(id)
-	if err != nil {
-		log.Fatalf("Invalid UUID format: %v", err)
-	}
-	return parsed
 }
 
 func getQueryParamList(c *gin.Context, paramName string) []string {
@@ -69,4 +60,24 @@ func getQueryParamLang(c *gin.Context) string {
 		lang = DefaultQpVals.Lang
 	}
 	return lang
+}
+
+func parseUUID(id string) (uuid.UUID, bool) {
+	parsed, err := uuid.Parse(id)
+	if err != nil {
+		return uuid.Nil, false
+	}
+	return parsed, true
+}
+
+func parseUUIDs(ids []string) ([]uuid.UUID, bool) {
+	parsed := make([]uuid.UUID, len(ids))
+	for i, id := range ids {
+		currUUID, ok := parseUUID(id)
+		if !ok {
+			return nil, false
+		}
+		parsed[i] = currUUID
+	}
+	return parsed, true
 }

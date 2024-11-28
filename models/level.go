@@ -8,8 +8,8 @@ import (
 type LevelType string
 
 const (
-	BuiltIn   LevelType = "BUILT_IN_LEVEL"
-	UserLevel LevelType = "USER_LEVEL"
+	BuiltIn     LevelType = "BUILT_IN_LEVEL"
+	CustomLevel LevelType = "CUSTOM_LEVEL"
 )
 
 type Level struct {
