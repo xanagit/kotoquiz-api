@@ -35,6 +35,11 @@ func GinHandlers(db *gorm.DB) *gin.Engine {
 	// Tag controller
 	tagController := &controllers.TagControllerImpl{Service: labelService}
 
+	// WordLearningHistory repository, service and controller
+	wordLearningHistoryRepository := &repositories.WordLearningHistoryRepositoryImpl{DB: db}
+	wordLearningHistoryService := &services.WordLearningHistoryServiceImpl{Repo: wordLearningHistoryRepository}
+	wordLearningHistoryController := &controllers.WordLearningHistoryControllerImpl{Service: wordLearningHistoryService}
+
 	// Configuration de l'application Gin
 	r := gin.Default()
 	appUserGroup := r.Group("/api/v1/app")
@@ -44,6 +49,7 @@ func GinHandlers(db *gorm.DB) *gin.Engine {
 		appUserGroup.GET("/words/:id", wordDtoController.ReadDtoWord) // query param: lang
 		appUserGroup.GET("/tags", tagController.ListTags)
 		appUserGroup.GET("/levels", levelController.ListLevels)
+		appUserGroup.POST("/quiz/results", wordLearningHistoryController.ProcessQuizResults)
 	}
 
 	techGroup := r.Group("/api/v1/tech")
