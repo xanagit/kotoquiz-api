@@ -3,6 +3,15 @@ package config
 import (
 	"github.com/spf13/viper"
 	"log"
+	"sync"
+	"sync/atomic"
+)
+
+var (
+	// Single instance of the configuration
+	instance atomic.Value
+	// Protection for initialization
+	once sync.Once
 )
 
 // Define Config struct to hold the app configuration
@@ -24,15 +33,40 @@ type DatabaseConfig struct {
 	Port     int
 }
 
+// GetConfig returns the singleton instance of the configuration
+// Thread-safe thanks to sync.Once and atomic.Value
+func GetConfig() (*Config, error) {
+	var loadErr error
+	config := instance.Load()
+	if config == nil {
+		// If config is not loaded, load it in a thread-safe way
+		once.Do(func() {
+			cfg, err := loadConfig()
+			if err != nil {
+				loadErr = err
+				return
+			}
+			instance.Store(cfg)
+		})
+		if loadErr != nil {
+			return nil, loadErr
+		}
+		config = instance.Load()
+	}
+	return config.(*Config), nil
+}
+
 // LoadConfig function loads and returns the configuration from config.yml and environment variables
-func LoadConfig() (*Config, error) {
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath("./config")
+// Creates a dedicated Viper instance to avoid conflicts
+func loadConfig() (*Config, error) {
+	v := viper.New() // Dedicated Viper instance
+	v.SetConfigName("config")
+	v.SetConfigType("yaml")
+	v.AddConfigPath("./config")
 
 	// Enable environment variables override and prefix
-	viper.AutomaticEnv()
-	viper.SetEnvPrefix("APP")
+	v.AutomaticEnv()
+	v.SetEnvPrefix("APP")
 
 	// Bind environment variables for specific configuration fields
 	envVars := map[string]string{
@@ -43,19 +77,19 @@ func LoadConfig() (*Config, error) {
 		"database.port":     "APP_DATABASE_PORT",
 	}
 	for key, env := range envVars {
-		if err := viper.BindEnv(key, env); err != nil {
+		if err := v.BindEnv(key, env); err != nil {
 			log.Fatalf("Erreur lors de la liaison de '%s': %v", key, err)
 		}
 	}
 
 	// Read the configuration file
-	if err := viper.ReadInConfig(); err != nil {
+	if err := v.ReadInConfig(); err != nil {
 		return nil, err
 	}
 
 	// Unmarshal the configuration into the Config struct
 	var config Config
-	if err := viper.Unmarshal(&config); err != nil {
+	if err := v.Unmarshal(&config); err != nil {
 		return nil, err
 	}
 
