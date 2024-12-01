@@ -21,12 +21,19 @@ func (s *WordDtoControllerImpl) ListWordsIDs(c *gin.Context) {
 	levelNameIds := getQueryParamList(c, "levelNames")
 	nb, _ := getQueryParamInt(c, "nb", DefaultQpVals.NbIdsList)
 
-	wordIdsList, err := s.WordDtoService.ListWordsIDs(tagIds, levelNameIds, nb)
+	userIDStr := c.Query("userId")
+	userID, ok := parseUUID(userIDStr)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid USer id format"})
+		return
+	}
 
+	wordIdsList, err := s.WordDtoService.ListWordsIDs(userID, tagIds, levelNameIds, nb)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	c.JSON(http.StatusOK, wordIdsList)
 }
 

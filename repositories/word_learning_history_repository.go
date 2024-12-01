@@ -8,17 +8,17 @@ import (
 )
 
 type WordLearningHistoryRepository interface {
-	// Basic CRUD
-	GetOrInsertHistory(userID, wordID uuid.UUID) (*models.WordLearningHistory, error)
+	GetOrInsertHistory(userID uuid.UUID, wordID uuid.UUID) (*models.WordLearningHistory, error)
 	CreateHistory(history *models.WordLearningHistory) error
 	UpdateHistory(history *models.WordLearningHistory) error
+	GetHistoriesByWordIDs(userID uuid.UUID, wordIDs []string) ([]*models.WordLearningHistory, error)
 }
 
 type WordLearningHistoryRepositoryImpl struct {
 	DB *gorm.DB
 }
 
-func (r *WordLearningHistoryRepositoryImpl) GetOrInsertHistory(userID, wordID uuid.UUID) (*models.WordLearningHistory, error) {
+func (r *WordLearningHistoryRepositoryImpl) GetOrInsertHistory(userID uuid.UUID, wordID uuid.UUID) (*models.WordLearningHistory, error) {
 	var history models.WordLearningHistory
 	err := r.DB.Where("user_id = ? AND word_id = ?", userID, wordID).First(&history).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -39,4 +39,10 @@ func (r *WordLearningHistoryRepositoryImpl) CreateHistory(history *models.WordLe
 
 func (r *WordLearningHistoryRepositoryImpl) UpdateHistory(history *models.WordLearningHistory) error {
 	return r.DB.Save(history).Error
+}
+
+func (r *WordLearningHistoryRepositoryImpl) GetHistoriesByWordIDs(userID uuid.UUID, wordIDs []string) ([]*models.WordLearningHistory, error) {
+	var histories []*models.WordLearningHistory
+	err := r.DB.Where("user_id = ? AND word_id IN ?", userID, wordIDs).Find(&histories).Error
+	return histories, err
 }

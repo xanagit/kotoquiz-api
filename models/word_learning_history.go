@@ -31,7 +31,7 @@ type WordLearningHistory struct {
 	BestStreak    int `gorm:"default:0" json:"bestStreak"`
 
 	// Learning Status
-	LearningStatus WLStatus `gorm:"type:enum('NEW','LEARNING','REVIEWING','MASTERED');default:'NEW'" json:"learningStatus"`
+	LearningStatus WLStatus `gorm:"default:'NEW'" json:"learningStatus"`
 
 	// Relations
 	User User `gorm:"foreignKey:UserID" json:"-"`

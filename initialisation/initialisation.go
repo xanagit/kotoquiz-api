@@ -20,7 +20,7 @@ func GinHandlers(db *gorm.DB) *gin.Engine {
 	wordController := &controllers.WordControllerImpl{Service: wordService}
 
 	// WordDto service and controller
-	wordDtoService := &services.WordDtoServiceImpl{Repo: wordRepository}
+	wordDtoService := &services.WordDtoServiceImpl{WordRepo: wordRepository}
 	wordDtoController := &controllers.WordDtoControllerImpl{WordDtoService: wordDtoService}
 
 	// Label repository, service and controller
@@ -39,6 +39,11 @@ func GinHandlers(db *gorm.DB) *gin.Engine {
 	wordLearningHistoryRepository := &repositories.WordLearningHistoryRepositoryImpl{DB: db}
 	wordLearningHistoryService := &services.WordLearningHistoryServiceImpl{Repo: wordLearningHistoryRepository}
 	wordLearningHistoryController := &controllers.WordLearningHistoryControllerImpl{Service: wordLearningHistoryService}
+
+	// User repository, service and controller
+	userRepository := &repositories.UserRepositoryImpl{DB: db}
+	userService := &services.UserServiceImpl{Repo: userRepository}
+	userController := &controllers.UserControllerImpl{Service: userService}
 
 	// Configuration de l'application Gin
 	r := gin.Default()
@@ -68,6 +73,11 @@ func GinHandlers(db *gorm.DB) *gin.Engine {
 		techGroup.POST("/levels", levelController.CreateLevel)
 		techGroup.PUT("/levels/:id", levelController.UpdateLevel)
 		techGroup.DELETE("/levels/:id", levelController.DeleteLevel)
+
+		techGroup.POST("/users", userController.CreateUser)
+		techGroup.GET("/users/:id", userController.ReadUser)
+		techGroup.PUT("/users/:id", userController.UpdateUser)
+		techGroup.DELETE("/users/:id", userController.DeleteUser)
 	}
 	return r
 }
@@ -89,7 +99,14 @@ func DatabaseConnection(dsn string) (*gorm.DB, error) {
 	}
 
 	// Auto-migrate the models to keep the schema in sync
-	err = db.AutoMigrate(&models.Label{}, &models.Word{}, &models.Level{}, &models.WordTag{}, &models.WordLevel{})
+	err = db.AutoMigrate(
+		&models.Label{},
+		&models.Word{},
+		&models.Level{},
+		&models.WordTag{},
+		&models.WordLevel{},
+		&models.User{},
+		&models.WordLearningHistory{})
 	if err != nil {
 		log.Fatal("failed to migrate database:", err)
 	}
