@@ -12,7 +12,7 @@ import (
 func Test_should_create_user(t *testing.T) {
 	t.Parallel()
 
-	user := generateUser()
+	user := GenerateUser()
 	var insertedUser models.User
 	httpResCode := post("/api/v1/tech/users", ToJson(&user), &insertedUser)
 
@@ -27,7 +27,7 @@ func Test_should_read_user(t *testing.T) {
 	t.Parallel()
 	var httpResCode int
 
-	user := generateUser()
+	user := GenerateUser()
 	user.ID = uuid.Nil
 	var insertedUser models.User
 	httpResCode = post("/api/v1/tech/users", ToJson(&user), &insertedUser)
@@ -44,7 +44,7 @@ func Test_should_read_user(t *testing.T) {
 func Test_should_update_user(t *testing.T) {
 	t.Parallel()
 
-	user := generateUser()
+	user := GenerateUser()
 	user.ID = uuid.Nil
 	var insertedUser models.User
 	post("/api/v1/tech/users", ToJson(&user), &insertedUser)
@@ -67,7 +67,7 @@ func Test_should_update_user(t *testing.T) {
 func Test_should_delete_user(t *testing.T) {
 	t.Parallel()
 
-	user := generateUser()
+	user := GenerateUser()
 	user.ID = uuid.Nil
 	var insertedUser models.User
 	post("/api/v1/tech/users", ToJson(&user), &insertedUser)
@@ -80,7 +80,7 @@ func Test_should_delete_user(t *testing.T) {
 func Test_should_not_create_user_with_duplicate_email(t *testing.T) {
 	t.Parallel()
 
-	users := []models.User{generateUser(), generateUser()}
+	users := []models.User{GenerateUser(), GenerateUser()}
 	users[1].Email = users[0].Email // Set same email
 
 	var insertedUser models.User
@@ -95,7 +95,7 @@ func Test_should_create_multiple_users(t *testing.T) {
 	t.Parallel()
 	var httpResCode int
 
-	users := []models.User{generateUser(), generateUser(), generateUser()}
+	users := []models.User{GenerateUser(), GenerateUser(), GenerateUser()}
 
 	insertedUsers := make([]models.User, 3)
 	for idx, user := range users {
@@ -115,7 +115,7 @@ func Test_should_create_multiple_users(t *testing.T) {
 	}
 }
 
-func generateUser() models.User {
+func GenerateUser() models.User {
 	return models.User{
 		ID:       uuid.New(),
 		Email:    uuid.New().String() + "@example.com",

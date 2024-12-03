@@ -19,10 +19,6 @@ func GinHandlers(db *gorm.DB) *gin.Engine {
 	wordService := &services.WordServiceImpl{Repo: wordRepository}
 	wordController := &controllers.WordControllerImpl{Service: wordService}
 
-	// WordDto service and controller
-	wordDtoService := &services.WordDtoServiceImpl{WordRepo: wordRepository}
-	wordDtoController := &controllers.WordDtoControllerImpl{WordDtoService: wordDtoService}
-
 	// Label repository, service and controller
 	labelRepository := &repositories.LabelRepositoryImpl{DB: db}
 	labelService := &services.LabelServiceImpl{Repo: labelRepository}
@@ -44,6 +40,10 @@ func GinHandlers(db *gorm.DB) *gin.Engine {
 	userRepository := &repositories.UserRepositoryImpl{DB: db}
 	userService := &services.UserServiceImpl{Repo: userRepository}
 	userController := &controllers.UserControllerImpl{Service: userService}
+
+	// WordDto service and controller
+	wordDtoService := &services.WordDtoServiceImpl{WordRepo: wordRepository, LearningHistoryRepo: wordLearningHistoryRepository}
+	wordDtoController := &controllers.WordDtoControllerImpl{WordDtoService: wordDtoService}
 
 	// Configuration de l'application Gin
 	r := gin.Default()
