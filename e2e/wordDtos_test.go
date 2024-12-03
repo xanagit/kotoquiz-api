@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/xanagit/kotoquiz-api/dto"
 	"github.com/xanagit/kotoquiz-api/models"
@@ -8,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 func Test_should_list_word_ids(t *testing.T) {
@@ -57,10 +59,14 @@ func Test_should_read_wordDto(t *testing.T) {
 func Test_should_list_WordDtoIds_corresponding_to_provided_tag_ids(t *testing.T) {
 	t.Parallel()
 
-	insertedWords := insertWordsDatasetForListDtoIds(t, 3)
+	user := GenerateUser()
+	var insertedUser models.User
+	httpResCode := post("/api/v1/tech/users", ToJson(&user), &insertedUser)
+	assert.Equal(t, http.StatusCreated, httpResCode)
 
+	insertedWords := insertWordsDatasetForListDtoIds(t, 3)
 	var fetchedWordDtoIdsList dto.WordIdsList
-	httpResCode := get("/api/v1/app/words/q?lang=fr&tags="+insertedWords[0].Tags[0].ID.String(), &fetchedWordDtoIdsList)
+	httpResCode = get("/api/v1/app/words/q?lang=fr&tags="+insertedWords[0].Tags[0].ID.String()+"&userId="+insertedUser.ID.String(), &fetchedWordDtoIdsList)
 	assert.Equal(t, http.StatusOK, httpResCode)
 
 	// Check that words only corresponding to tag are fetched
@@ -73,10 +79,15 @@ func Test_should_list_WordDtoIds_corresponding_to_provided_tag_ids(t *testing.T)
 func Test_should_list_WordDtoIds_corresponding_to_provided_levelNamesIds_ids(t *testing.T) {
 	t.Parallel()
 
+	user := GenerateUser()
+	var insertedUser models.User
+	httpResCode := post("/api/v1/tech/users", ToJson(&user), &insertedUser)
+	assert.Equal(t, http.StatusCreated, httpResCode)
+
 	insertedWords := insertWordsDatasetForListDtoIds(t, 3)
 
 	var fetchedWordDtoIdsForLevelsList dto.WordIdsList
-	httpResCode := get("/api/v1/app/words/q?lang=fr&levelNames="+insertedWords[0].Levels[0].LevelNames[0].ID.String(), &fetchedWordDtoIdsForLevelsList)
+	httpResCode = get("/api/v1/app/words/q?lang=fr&levelNames="+insertedWords[0].Levels[0].LevelNames[0].ID.String()+"&userId="+insertedUser.ID.String(), &fetchedWordDtoIdsForLevelsList)
 	assert.Equal(t, http.StatusOK, httpResCode)
 
 	// Check that words only corresponding to levelNames are fetched
@@ -168,4 +179,141 @@ func insertWordsDatasetForListDtoIds(t *testing.T, nb int) []*models.Word {
 	}
 
 	return insertedWords
+}
+
+func Test_should_process_quiz_results(t *testing.T) {
+	t.Parallel()
+
+	// Create a test user
+	user := GenerateUser()
+	var insertedUser models.User
+	httpResCode := post("/api/v1/tech/users", ToJson(&user), &insertedUser)
+	assert.Equal(t, http.StatusCreated, httpResCode)
+
+	// Create test words
+	words := []models.Word{GenerateWord(), GenerateWord(), GenerateWord()}
+	insertedWords := make([]models.Word, len(words))
+	for idx, word := range words {
+		httpResCode = post("/api/v1/tech/words", ToJson(&word), &insertedWords[idx])
+		assert.Equal(t, http.StatusCreated, httpResCode)
+	}
+
+	// Create quiz results
+	quizResults := dto.QuizResults{
+		UserID: insertedUser.ID,
+		Results: []dto.WordQuizResult{
+			{WordID: insertedWords[0].ID, Status: dto.Success},
+			{WordID: insertedWords[1].ID, Status: dto.Error},
+			{WordID: insertedWords[2].ID, Status: dto.Unanswered},
+		},
+	}
+
+	// Submit quiz results
+	httpResCode = postNoContent("/api/v1/app/quiz/results", ToJson(&quizResults))
+	assert.Equal(t, http.StatusOK, httpResCode)
+
+	// Test successive quiz results for learning progression
+	testSuccessiveQuizResults(t, insertedUser.ID, insertedWords[0].ID)
+}
+
+func Test_should_handle_invalid_quiz_results(t *testing.T) {
+	t.Parallel()
+
+	// Test with invalid user ID
+	invalidUserResults := dto.QuizResults{
+		UserID: uuid.New(), // Non-existent user
+		Results: []dto.WordQuizResult{
+			{WordID: uuid.New(), Status: dto.Success},
+		},
+	}
+	httpResCode := postNoContent("/api/v1/app/quiz/results", ToJson(&invalidUserResults))
+	assert.Equal(t, http.StatusInternalServerError, httpResCode)
+
+	// Test with invalid word ID
+	user := GenerateUser()
+	var insertedUser models.User
+	httpResCode = post("/api/v1/tech/users", ToJson(&user), &insertedUser)
+	assert.Equal(t, http.StatusCreated, httpResCode)
+
+	invalidWordResults := dto.QuizResults{
+		UserID: insertedUser.ID,
+		Results: []dto.WordQuizResult{
+			{WordID: uuid.New(), Status: dto.Success}, // Non-existent word
+		},
+	}
+	httpResCode = postNoContent("/api/v1/app/quiz/results", ToJson(&invalidWordResults))
+	assert.Equal(t, http.StatusInternalServerError, httpResCode)
+}
+
+func testSuccessiveQuizResults(t *testing.T, userID uuid.UUID, wordID uuid.UUID) {
+	// Test progression through learning states
+	successResults := dto.QuizResults{
+		UserID: userID,
+		Results: []dto.WordQuizResult{
+			{WordID: wordID, Status: dto.Success},
+		},
+	}
+
+	// Submit multiple successful answers to test progression
+	for i := 0; i < 5; i++ {
+		httpResCode := postNoContent("/api/v1/app/quiz/results", ToJson(&successResults))
+		assert.Equal(t, http.StatusOK, httpResCode)
+		time.Sleep(100 * time.Millisecond) // Ensure different timestamps
+	}
+
+	// Test error impact
+	errorResults := dto.QuizResults{
+		UserID: userID,
+		Results: []dto.WordQuizResult{
+			{WordID: wordID, Status: dto.Error},
+		},
+	}
+	httpResCode := postNoContent("/api/v1/app/quiz/results", ToJson(&errorResults))
+	assert.Equal(t, http.StatusOK, httpResCode)
+}
+
+func Test_should_handle_empty_quiz_results(t *testing.T) {
+	t.Parallel()
+
+	user := GenerateUser()
+	var insertedUser models.User
+	httpResCode := post("/api/v1/tech/users", ToJson(&user), &insertedUser)
+	assert.Equal(t, http.StatusCreated, httpResCode)
+
+	emptyResults := dto.QuizResults{
+		UserID:  insertedUser.ID,
+		Results: []dto.WordQuizResult{},
+	}
+	httpResCode = postNoContent("/api/v1/app/quiz/results", ToJson(&emptyResults))
+	assert.Equal(t, http.StatusOK, httpResCode)
+}
+
+func Test_should_handle_mixed_status_quiz_results(t *testing.T) {
+	t.Parallel()
+
+	// Create test user
+	user := GenerateUser()
+	var insertedUser models.User
+	httpResCode := post("/api/v1/tech/users", ToJson(&user), &insertedUser)
+	assert.Equal(t, http.StatusCreated, httpResCode)
+
+	// Create test word
+	word := GenerateWord()
+	var insertedWord models.Word
+	httpResCode = post("/api/v1/tech/words", ToJson(&word), &insertedWord)
+	assert.Equal(t, http.StatusCreated, httpResCode)
+
+	// Submit mixed results for the same word
+	statuses := []dto.ResultStatus{dto.Success, dto.Error, dto.Unanswered, dto.Success, dto.Success}
+	for _, status := range statuses {
+		results := dto.QuizResults{
+			UserID: insertedUser.ID,
+			Results: []dto.WordQuizResult{
+				{WordID: insertedWord.ID, Status: status},
+			},
+		}
+		httpResCode = postNoContent("/api/v1/app/quiz/results", ToJson(&results))
+		assert.Equal(t, http.StatusOK, httpResCode)
+		time.Sleep(100 * time.Millisecond) // Ensure different timestamps
+	}
 }

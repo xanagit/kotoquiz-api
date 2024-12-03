@@ -35,6 +35,14 @@ func post[T any](url string, jsonData string, model *T) int {
 	return w.Code
 }
 
+// When no data returned
+func postNoContent(url string, jsonData string) int {
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("POST", url, bytes.NewBufferString(jsonData))
+	router.ServeHTTP(w, req)
+	return w.Code
+}
+
 func put[T any](url string, jsonData string, model *T) int {
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("PUT", url, bytes.NewBufferString(jsonData))

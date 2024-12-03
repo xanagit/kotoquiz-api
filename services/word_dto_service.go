@@ -5,28 +5,33 @@ import (
 	"github.com/google/uuid"
 	"github.com/xanagit/kotoquiz-api/dto"
 	"github.com/xanagit/kotoquiz-api/repositories"
-	"math/rand"
-	"time"
 )
 
 type WordDtoService interface {
-	ListWordsIDs(tagIds []string, levelNameIds []string, nb int) (*dto.WordIdsList, error)
+	ListWordsIDs(userID uuid.UUID, tagIds []string, levelNameIds []string, nb int) (*dto.WordIdsList, error)
 	ListWordsDtoByIDs(ids []uuid.UUID, lang string) ([]*dto.WordDTO, error)
 	ReadWord(id uuid.UUID, lang string) (*dto.WordDTO, error)
 }
 
 type WordDtoServiceImpl struct {
-	Repo repositories.WordRepository
+	WordRepo            repositories.WordRepository
+	LearningHistoryRepo repositories.WordLearningHistoryRepository
 }
 
-func (s *WordDtoServiceImpl) ListWordsIDs(tagIds []string, levelNameIds []string, nb int) (*dto.WordIdsList, error) {
-
-	wordIds, err := s.Repo.ListWordsIds(tagIds, levelNameIds, -1) // On récupère tous les IDs
-	if err != nil {
-		return nil, err
+func (s *WordDtoServiceImpl) ListWordsIDs(userID uuid.UUID, tagIds []string, levelNameIds []string, nb int) (*dto.WordIdsList, error) {
+	// Fetch and validate words
+	allWordIDs, err := s.fetchAndValidateWords(tagIds, levelNameIds, nb)
+	if err != nil || len(allWordIDs.Ids) == 0 {
+		return allWordIDs, err
 	}
-	wordIdsList := dto.WordIdsList{Ids: shuffleAndLimit(wordIds, nb)}
-	return &wordIdsList, nil
+
+	// If no user specified, return random words
+	if userID == uuid.Nil {
+		return allWordIDs, nil
+	}
+
+	// Process words with learning history
+	return s.processWordsWithLearningHistory(userID, allWordIDs.Ids, nb)
 }
 
 func (s *WordDtoServiceImpl) ListWordsDtoByIDs(ids []uuid.UUID, lang string) ([]*dto.WordDTO, error) {
@@ -34,13 +39,13 @@ func (s *WordDtoServiceImpl) ListWordsDtoByIDs(ids []uuid.UUID, lang string) ([]
 		return nil, fmt.Errorf("no IDs provided")
 	}
 
-	// Récupérer les mots correspondant aux IDs
-	words, err := s.Repo.ListWordsByIds(ids)
+	// Fetch words corresponding to IDs
+	words, err := s.WordRepo.ListWordsByIds(ids)
 	if err != nil {
 		return nil, err
 	}
 
-	// Mapper les résultats en DTO
+	// Map results to DTO
 	wordDTOs := make([]*dto.WordDTO, len(words))
 	for i, word := range words {
 		wordDTOs[i] = mapWordToDTO(word, lang)
@@ -50,7 +55,7 @@ func (s *WordDtoServiceImpl) ListWordsDtoByIDs(ids []uuid.UUID, lang string) ([]
 }
 
 func (s *WordDtoServiceImpl) ReadWord(id uuid.UUID, lang string) (*dto.WordDTO, error) {
-	word, err := s.Repo.ReadWord(id)
+	word, err := s.WordRepo.ReadWord(id)
 	if err != nil {
 		return nil, err
 	}
@@ -58,19 +63,4 @@ func (s *WordDtoServiceImpl) ReadWord(id uuid.UUID, lang string) (*dto.WordDTO, 
 	wordDTO := mapWordToDTO(word, lang)
 
 	return wordDTO, nil
-}
-
-func shuffleAndLimit(wordIds []string, nb int) []string {
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-
-	// Shuffle the list
-	r.Shuffle(len(wordIds), func(i, j int) {
-		wordIds[i], wordIds[j] = wordIds[j], wordIds[i]
-	})
-
-	// Limit the list to 'nb' items
-	if nb > len(wordIds) {
-		nb = len(wordIds)
-	}
-	return wordIds[:nb]
 }
