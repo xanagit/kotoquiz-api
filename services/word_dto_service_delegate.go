@@ -6,8 +6,21 @@ import (
 	"github.com/xanagit/kotoquiz-api/models"
 	"math/rand"
 	"sort"
+	"sync"
 	"time"
 )
+
+var (
+	// globalRand is a shared random number generator
+	globalRand *rand.Rand
+	// randMutex protects access to globalRand
+	randMutex sync.Mutex
+)
+
+// init initialise global random number generator
+func init() {
+	globalRand = rand.New(rand.NewSource(time.Now().UnixNano()))
+}
 
 func (s *WordDtoServiceImpl) prioritizeWords(wordIDs []string, histories []*models.WordLearningHistory, nb int) []string {
 	now := time.Now()
@@ -87,25 +100,29 @@ func (s *WordDtoServiceImpl) prioritizeWords(wordIDs []string, histories []*mode
 	return result
 }
 
-// Add a slight randomization to results while preserving global priority
 func shuffleTopResults(ids []string) {
-	// Divide list in groups of priority and shuffle each groups
 	groupSize := 10 // Randomization group size
+
 	for i := 0; i < len(ids); i += groupSize {
 		end := i + groupSize
 		if end > len(ids) {
 			end = len(ids)
 		}
 		group := ids[i:end]
-		r := rand.New(rand.NewSource(time.Now().UnixNano()))
-		r.Shuffle(len(group), func(i, j int) {
-			group[i], group[j] = group[j], group[i]
-		})
+
+		// Get the lock before using the random number generator
+		randMutex.Lock()
+		// Shuffle group with shared generator
+		for j := len(group) - 1; j > 0; j-- {
+			k := globalRand.Intn(j + 1)
+			group[j], group[k] = group[k], group[j]
+		}
+		// Free the lock immediately after use
+		randMutex.Unlock()
 	}
 }
 
 func shuffleAndLimit(ids []string, limit int) []string {
-	// If limit is negative or zero, return an empty list
 	if limit <= 0 {
 		return []string{}
 	}
@@ -114,14 +131,16 @@ func shuffleAndLimit(ids []string, limit int) []string {
 	shuffled := make([]string, len(ids))
 	copy(shuffled, ids)
 
-	// Shuffle the slice using the Fisher-Yates algorithm
-	rand.NewSource(time.Now().UnixNano())
+	// Get the lock before using the random number generator
+	randMutex.Lock()
+	// Shuffle using Fisher-Yates algorithm with shared random generator
 	for i := len(shuffled) - 1; i > 0; i-- {
-		j := rand.Intn(i + 1)
+		j := globalRand.Intn(i + 1)
 		shuffled[i], shuffled[j] = shuffled[j], shuffled[i]
 	}
+	randMutex.Unlock()
 
-	//Limit the size of the result
+	// Limit the size of the result
 	if len(shuffled) > limit {
 		shuffled = shuffled[:limit]
 	}

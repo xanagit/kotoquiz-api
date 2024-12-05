@@ -48,14 +48,6 @@ func (s *UserServiceImpl) UpdateUser(user *models.User) error {
 		return fmt.Errorf("user not found")
 	}
 
-	// Check if email is modifier dans if it is not already used
-	if user.Email != existingUser.Email {
-		userWithEmail, _ := s.Repo.GetUserByEmail(user.Email)
-		if userWithEmail != nil {
-			return fmt.Errorf("email already in use")
-		}
-	}
-
 	// If a new password is provided, hash it
 	if user.Password != "" {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
@@ -68,7 +60,7 @@ func (s *UserServiceImpl) UpdateUser(user *models.User) error {
 		user.Password = existingUser.Password
 	}
 
-	return s.Repo.UpdateUser(user)
+	return s.Repo.UpdateUserSafe(user)
 }
 
 func (s *UserServiceImpl) DeleteUser(id uuid.UUID) error {

@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"database/sql"
 	"github.com/google/uuid"
 	"github.com/xanagit/kotoquiz-api/models"
 	"gorm.io/gorm"
@@ -20,8 +21,22 @@ type LevelRepositoryImpl struct {
 
 func (r *LevelRepositoryImpl) ListLevels() ([]*models.Level, error) {
 	var labels []*models.Level
-	result := r.DB.Preload("LevelNames").Preload("Category").Find(&labels)
-	return labels, result.Error
+
+	err := r.DB.Transaction(func(tx *gorm.DB) error {
+		// REPEATABLE READ ensures that all readings in the transaction
+		// see a consistent picture of the data
+		err := tx.Exec("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ").Error
+		if err != nil {
+			return err
+		}
+
+		return tx.Preload("LevelNames").Preload("Category").Find(&labels).Error
+	}, &sql.TxOptions{
+		Isolation: sql.LevelRepeatableRead,
+		ReadOnly:  true, // Optimization because we only do reading
+	})
+
+	return labels, err
 }
 
 func (r *LevelRepositoryImpl) ReadLevel(id uuid.UUID) (*models.Level, error) {
@@ -39,10 +54,6 @@ func (r *LevelRepositoryImpl) UpdateLevel(label *models.Level) error {
 }
 
 func (r *LevelRepositoryImpl) DeleteLevel(id uuid.UUID) error {
-	//if err := r.DB.Where("id = ?", id).Delete(&models.Level{}).Error; err != nil {
-	//	return err
-	//}
-	//return nil
 	return r.DB.Transaction(func(tx *gorm.DB) error {
 		var level models.Level
 		// Charger le level avec ses associations

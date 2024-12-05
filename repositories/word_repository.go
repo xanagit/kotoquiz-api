@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"database/sql"
 	"github.com/google/uuid"
 	"github.com/xanagit/kotoquiz-api/models"
 	"gorm.io/gorm"
@@ -22,31 +23,39 @@ type WordRepositoryImpl struct {
 func (r *WordRepositoryImpl) ListWordsIds(tagIds []string, levelNameIds []string, nb int) ([]string, error) {
 	var wordIDs []string
 
-	query := r.DB.Table("words w").
-		Select("DISTINCT w.id")
-	if len(tagIds) > 0 {
-		query.
-			Joins("JOIN word_tag wt ON wt.word_id = w.id").
-			Joins("JOIN labels t ON t.id = wt.label_id").
-			Where("t.id IN ?", tagIds)
-	}
-	if len(levelNameIds) > 0 {
-		query.
-			Joins("JOIN word_level wl ON wl.word_id = w.id").
-			Joins("JOIN levels l ON l.id = wl.level_id").
-			Joins("JOIN level_values lv ON lv.level_id = l.id").
-			Where("lv.label_id IN ?", levelNameIds)
-	}
-	if nb > 0 {
-		query.Limit(nb)
-	}
+	err := r.DB.Transaction(func(tx *gorm.DB) error {
+		// Define the isolation level for this read
+		// REPEATABLE READ prevents modifications while reading
+		err := tx.Exec("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ").Error
+		if err != nil {
+			return err
+		}
 
-	err := query.Scan(&wordIDs).Error
-	if err != nil {
-		return nil, err
-	}
+		query := tx.Table("words w").
+			Select("DISTINCT w.id")
+		if len(tagIds) > 0 {
+			query.
+				Joins("JOIN word_tag wt ON wt.word_id = w.id").
+				Joins("JOIN labels t ON t.id = wt.label_id").
+				Where("t.id IN ?", tagIds)
+		}
+		if len(levelNameIds) > 0 {
+			query.
+				Joins("JOIN word_level wl ON wl.word_id = w.id").
+				Joins("JOIN levels l ON l.id = wl.level_id").
+				Joins("JOIN level_values lv ON lv.level_id = l.id").
+				Where("lv.label_id IN ?", levelNameIds)
+		}
+		if nb > 0 {
+			query.Limit(nb)
+		}
 
-	return wordIDs, nil
+		return query.Scan(&wordIDs).Error
+	}, &sql.TxOptions{
+		Isolation: sql.LevelRepeatableRead,
+	})
+
+	return wordIDs, err
 }
 
 func (r *WordRepositoryImpl) ListWordsByIds(ids []uuid.UUID) ([]*models.Word, error) {
