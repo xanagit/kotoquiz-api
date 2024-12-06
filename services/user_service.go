@@ -13,6 +13,7 @@ type UserService interface {
 	ReadUser(id uuid.UUID) (*models.User, error)
 	UpdateUser(user *models.User) error
 	DeleteUser(id uuid.UUID) error
+	ValidateCredentials(email, password string) (*models.User, error)
 }
 
 type UserServiceImpl struct {
@@ -21,6 +22,12 @@ type UserServiceImpl struct {
 
 func (s *UserServiceImpl) CreateUser(user *models.User) error {
 	user.ID = uuid.Nil
+
+	// By default, new users have the APP_USER role
+	if user.Role == "" {
+		user.Role = models.RoleAppUser
+	}
+
 	// Check if email already exists
 	existingUser, _ := s.Repo.GetUserByEmail(user.Email)
 	if existingUser != nil {
@@ -69,4 +76,23 @@ func (s *UserServiceImpl) DeleteUser(id uuid.UUID) error {
 		return fmt.Errorf("user not found")
 	}
 	return s.Repo.DeleteUser(id)
+}
+
+func (s *UserServiceImpl) ValidateCredentials(email, password string) (*models.User, error) {
+	// Fetch user by email
+	user, err := s.Repo.GetUserByEmail(email)
+	if err != nil {
+		return nil, fmt.Errorf("invalid credentials")
+	}
+
+	// Check if password is correct
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err != nil {
+		return nil, fmt.Errorf("invalid credentials")
+	}
+
+	// Ne pas renvoyer le hash du mot de passe
+	user.Password = ""
+
+	return user, nil
 }

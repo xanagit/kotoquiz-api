@@ -13,12 +13,12 @@ func main() {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
-	db, err := initialisation.DatabaseConnectionFromConfig(cfg)
-	if err != nil {
+	db, dbErr := initialisation.DatabaseConnectionFromConfig(cfg)
+	if dbErr != nil {
 		log.Fatalf("Unabled to connect to database %v", err)
 	}
 
-	r := initialisation.GinHandlers(db)
+	r := initialisation.GinHandlers(cfg, db)
 
 	runError := r.Run()
 	if runError != nil {

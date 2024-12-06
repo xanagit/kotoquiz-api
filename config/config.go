@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"github.com/spf13/viper"
 	"log"
 	"sync"
@@ -14,10 +15,12 @@ var (
 	once sync.Once
 )
 
-// Define Config struct to hold the app configuration
+// Config Define config struct to hold the app configuration
 type Config struct {
 	App      AppConfig
 	Database DatabaseConfig
+	Jwt      JwtConfig
+	Cors     CorsConfig `yaml:"cors"`
 }
 
 // AppConfig and DatabaseConfig structs to structure config fields
@@ -33,6 +36,17 @@ type DatabaseConfig struct {
 	Port     int
 }
 
+type JwtConfig struct {
+	SecretKey string
+}
+
+type CorsConfig struct {
+	AllowedOrigins []string `yaml:"allowed_origins"`
+	AllowedMethods []string `yaml:"allowed_methods"`
+	AllowedHeaders []string `yaml:"allowed_headers"`
+	MaxAge         int      `yaml:"max_age"`
+}
+
 // GetConfig returns the singleton instance of the configuration
 // Thread-safe thanks to sync.Once and atomic.Value
 func GetConfig() (*Config, error) {
@@ -46,6 +60,9 @@ func GetConfig() (*Config, error) {
 				loadErr = err
 				return
 			}
+			if len(cfg.Jwt.SecretKey) < 32 {
+				loadErr = fmt.Errorf("JWT secret key must be at least 32 bytes long")
+			}
 			instance.Store(cfg)
 		})
 		if loadErr != nil {
@@ -56,7 +73,7 @@ func GetConfig() (*Config, error) {
 	return config.(*Config), nil
 }
 
-// LoadConfig function loads and returns the configuration from config.yml and environment variables
+// loadConfig function loads and returns the configuration from config.yml and environment variables
 // Creates a dedicated Viper instance to avoid conflicts
 func loadConfig() (*Config, error) {
 	v := viper.New() // Dedicated Viper instance
@@ -75,6 +92,7 @@ func loadConfig() (*Config, error) {
 		"database.password": "APP_DATABASE_PASSWORD",
 		"database.name":     "APP_DATABASE_NAME",
 		"database.port":     "APP_DATABASE_PORT",
+		"jwt.secret-key":    "APP_JWT_SECRET_KEY",
 	}
 	for key, env := range envVars {
 		if err := v.BindEnv(key, env); err != nil {

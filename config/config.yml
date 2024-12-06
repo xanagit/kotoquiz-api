@@ -6,3 +6,19 @@ database:
   password: mypassword
   name: kotoquiz
   port: 5432
+jwt:
+  secret-key: 034394dd0118a7c6d1afae99a3c8dfcbafd4003fe5c1d0904ec233a03dc12629
+cors:
+  allowed_origins:
+    - https://kotoquiz.com
+    - http://localhost:3000
+  allowed_methods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+  allowed_headers:
+    - Origin
+    - Authorization
+    - Content-Type
+  max_age: 86400
