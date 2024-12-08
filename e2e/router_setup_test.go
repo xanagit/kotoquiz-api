@@ -130,7 +130,7 @@ func setupRouter() (*gin.Engine, error) {
 		return nil, err
 	}
 
-	r := initialisation.GinHandlers(db)
+	r, _ := initialisation.GinHandlers(nil, db)
 
 	logger.Info("router initialized", zap.Any("router", router))
 
