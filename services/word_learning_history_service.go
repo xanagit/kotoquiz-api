@@ -8,14 +8,14 @@ import (
 )
 
 type WordLearningHistoryService interface {
-	ProcessQuizResults(userID uuid.UUID, results []dto.WordQuizResult) error
+	ProcessQuizResults(userID string, results []dto.WordQuizResult) error
 }
 
 type WordLearningHistoryServiceImpl struct {
 	Repo repositories.WordLearningHistoryRepository
 }
 
-func (s *WordLearningHistoryServiceImpl) ProcessQuizResults(userID uuid.UUID, results []dto.WordQuizResult) error {
+func (s *WordLearningHistoryServiceImpl) ProcessQuizResults(userID string, results []dto.WordQuizResult) error {
 	// Build list of word IDs and map of results (word ID -> WordQuizResult)
 	wordIDs := make([]uuid.UUID, len(results))
 	resultsMap := make(map[uuid.UUID]*dto.WordQuizResult)

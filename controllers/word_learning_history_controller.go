@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/xanagit/kotoquiz-api/dto"
+	"github.com/xanagit/kotoquiz-api/middlewares"
 	"github.com/xanagit/kotoquiz-api/services"
 	"net/http"
 )
@@ -33,7 +34,14 @@ func (ctrl *WordLearningHistoryControllerImpl) ProcessQuizResults(c *gin.Context
 		return
 	}
 
-	if err := ctrl.Service.ProcessQuizResults(quizResults.UserID, quizResults.Results); err != nil {
+	// Fetch user ID from token
+	userID, err := middlewares.GetUserIDFromToken(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unable to get user ID from token"})
+		return
+	}
+
+	if err := ctrl.Service.ProcessQuizResults(userID, quizResults.Results); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

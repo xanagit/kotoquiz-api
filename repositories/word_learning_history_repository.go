@@ -8,7 +8,7 @@ import (
 )
 
 type WordLearningHistoryRepository interface {
-	GetHistories(userID uuid.UUID, wordIDs []uuid.UUID) (map[uuid.UUID]*models.WordLearningHistory, error)
+	GetHistories(userID string, wordIDs []uuid.UUID) (map[uuid.UUID]*models.WordLearningHistory, error)
 	InsertHistories(histories []*models.WordLearningHistory) error
 	UpdateHistories(histories []*models.WordLearningHistory) error
 	GetHistoriesByWordIDs(userID uuid.UUID, wordIDs []string) ([]*models.WordLearningHistory, error)
@@ -18,7 +18,7 @@ type WordLearningHistoryRepositoryImpl struct {
 	DB *gorm.DB
 }
 
-func (r *WordLearningHistoryRepositoryImpl) GetHistories(userID uuid.UUID, wordIDs []uuid.UUID) (map[uuid.UUID]*models.WordLearningHistory, error) {
+func (r *WordLearningHistoryRepositoryImpl) GetHistories(userID string, wordIDs []uuid.UUID) (map[uuid.UUID]*models.WordLearningHistory, error) {
 	var histories []*models.WordLearningHistory
 
 	err := r.DB.Set("gorm:query_option", "FOR UPDATE").
@@ -34,16 +34,6 @@ func (r *WordLearningHistoryRepositoryImpl) GetHistories(userID uuid.UUID, wordI
 	for _, h := range histories {
 		existingHistories[h.WordID] = h
 	}
-
-	// Crée un slice de résultats dans le même ordre que les wordIDs
-	//result := make([]*models.WordLearningHistory, len(wordIDs))
-	//for i, wordID := range wordIDs {
-	//	if history, exists := existingHistories[wordID]; exists {
-	//		result[i] = history
-	//	} else {
-	//		result[i] = nil
-	//	}
-	//}
 
 	return existingHistories, nil
 }
