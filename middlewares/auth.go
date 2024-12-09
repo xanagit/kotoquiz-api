@@ -42,6 +42,9 @@ type Claims struct {
 	} `json:"realm_access"`
 }
 
+// Make sure that AuthMiddlewareImpl implements AuthMiddleware
+var _ AuthMiddleware = (*AuthMiddlewareImpl)(nil)
+
 func NewAuthMiddleware(cfg *config.KeycloakConfig) (*AuthMiddlewareImpl, error) {
 	ctx := context.Background()
 
@@ -142,4 +145,15 @@ func (am *AuthMiddlewareImpl) RequireRoles(roles ...string) gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+// GetUserIDFromToken extracts user ID from Keycloak token
+func GetUserIDFromToken(c *gin.Context) (string, error) {
+	claimsInterface, exists := c.Get("claims")
+	if !exists {
+		return "", fmt.Errorf("no claims found")
+	}
+
+	claims := claimsInterface.(Claims)
+	return claims.Subject, nil // "sub" claim contains keycloak user ID
 }

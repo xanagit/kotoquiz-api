@@ -15,7 +15,7 @@ const (
 )
 
 type WordLearningHistory struct {
-	UserID uuid.UUID `gorm:"type:uuid;primaryKey;index:idx_user_word,priority:1" json:"userId"`
+	UserID string    `gorm:"type:varchar(255);primaryKey;index:idx_user_word,priority:1" json:"userId"` // Keycloak user ID
 	WordID uuid.UUID `gorm:"type:uuid;primaryKey;index:idx_user_word,priority:2" json:"wordId"`
 
 	// Learning timing
@@ -34,6 +34,5 @@ type WordLearningHistory struct {
 	LearningStatus WLStatus `gorm:"default:'NEW'" json:"learningStatus"`
 
 	// Relations
-	User User `gorm:"foreignKey:UserID" json:"-"`
 	Word Word `gorm:"foreignKey:WordID" json:"-"`
 }

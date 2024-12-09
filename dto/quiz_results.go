@@ -16,6 +16,6 @@ type WordQuizResult struct {
 }
 
 type QuizResults struct {
-	UserID  uuid.UUID        `json:"userId"`
+	UserID  string           `json:"userId"` // Keycloak user ID
 	Results []WordQuizResult `json:"results"`
 }

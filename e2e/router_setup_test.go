@@ -3,6 +3,8 @@ package main
 import (
 	"errors"
 	"github.com/xanagit/kotoquiz-api/initialisation"
+	"github.com/xanagit/kotoquiz-api/middlewares"
+	"log"
 	"os"
 	"os/exec"
 	"sync"
@@ -15,6 +17,8 @@ import (
 	"gorm.io/gorm"
 )
 
+type MockAuthMiddleware struct{}
+
 var (
 	containerID string
 	router      *gin.Engine
@@ -22,6 +26,33 @@ var (
 	ready       sync.WaitGroup
 	logger      *zap.Logger
 )
+
+func (m *MockAuthMiddleware) AuthRequired() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		mockClaims := middlewares.Claims{
+			Subject: "test-user",
+			RealmAccess: struct {
+				Roles []string `json:"roles"`
+			}{
+				Roles: []string{"user", "admin"},
+			},
+		}
+		c.Set("claims", mockClaims)
+		c.Next()
+	}
+}
+
+func (m *MockAuthMiddleware) RequireRoles(_ ...string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Next() // In test mode accept all roles
+	}
+}
+
+func InitializeMiddlewareComponents() (*initialisation.MiddlewareComponents, error) {
+	return &initialisation.MiddlewareComponents{
+		AuthMiddleware: &MockAuthMiddleware{},
+	}, nil
+}
 
 // initLogger initialise le logger global Zap
 func initLogger() {
@@ -130,7 +161,14 @@ func setupRouter() (*gin.Engine, error) {
 		return nil, err
 	}
 
-	r, _ := initialisation.GinHandlers(nil, db)
+	components := initialisation.InitializeAppComponents(db)
+	middlewareComponents, mcErr := InitializeMiddlewareComponents()
+	if mcErr != nil {
+		log.Fatalf("Failed to initialize app components: %v", err)
+	}
+	// Gin application configuration
+	r := gin.Default()
+	initialisation.ConfigureRoutes(r, components, middlewareComponents)
 
 	logger.Info("router initialized", zap.Any("router", router))
 

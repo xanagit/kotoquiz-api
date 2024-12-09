@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/xanagit/kotoquiz-api/config"
 	"github.com/xanagit/kotoquiz-api/initialisation"
 	"log"
@@ -18,10 +19,14 @@ func main() {
 		log.Fatalf("Unabled to connect to database %v", err)
 	}
 
-	r, ginErr := initialisation.GinHandlers(cfg, db)
-	if ginErr != nil {
-		log.Fatalf("Failed to initialize gin handlers: %v", err)
+	components := initialisation.InitializeAppComponents(db)
+	middlewares, mcErr := initialisation.InitializeMiddlewareComponents(cfg)
+	if mcErr != nil {
+		log.Fatalf("Failed to initialize app components: %v", err)
 	}
+	// Gin application configuration
+	r := gin.Default()
+	initialisation.ConfigureRoutes(r, components, middlewares)
 
 	runError := r.Run()
 	if runError != nil {
