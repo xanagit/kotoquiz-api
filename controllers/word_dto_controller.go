@@ -7,14 +7,18 @@ import (
 	"net/http"
 )
 
-type WordControllerDto interface {
+type WordDtoController interface {
 	ListWordsIDs(c *gin.Context)
 	ReadDtoWord(c *gin.Context)
+	ListDtoWords(c *gin.Context)
 }
 
 type WordDtoControllerImpl struct {
 	WordDtoService services.WordDtoService
 }
+
+// Make sure that WordDtoControllerImpl implements WordDtoController
+var _ WordDtoController = (*WordDtoControllerImpl)(nil)
 
 func (s *WordDtoControllerImpl) ListWordsIDs(c *gin.Context) {
 	tagIds := getQueryParamList(c, "tags")

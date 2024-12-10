@@ -16,6 +16,9 @@ type WordLearningHistoryControllerImpl struct {
 	Service services.WordLearningHistoryService
 }
 
+// Make sure that WordLearningHistoryControllerImpl implements WordLearningHistoryController
+var _ WordLearningHistoryController = (*WordLearningHistoryControllerImpl)(nil)
+
 // ProcessQuizResults godoc
 // @Summary Process quiz results for a user
 // @Description Updates learning history for multiple words based on quiz results

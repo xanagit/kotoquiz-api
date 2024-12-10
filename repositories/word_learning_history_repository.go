@@ -18,6 +18,9 @@ type WordLearningHistoryRepositoryImpl struct {
 	DB *gorm.DB
 }
 
+// Make sure that WordLearningHistoryRepositoryImpl implements WordLearningHistoryRepository
+var _ WordLearningHistoryRepository = (*WordLearningHistoryRepositoryImpl)(nil)
+
 func (r *WordLearningHistoryRepositoryImpl) GetHistories(userID string, wordIDs []uuid.UUID) (map[uuid.UUID]*models.WordLearningHistory, error) {
 	var histories []*models.WordLearningHistory
 

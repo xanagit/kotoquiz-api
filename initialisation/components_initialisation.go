@@ -12,24 +12,24 @@ import (
 
 type AppComponents struct {
 	// Repositories
-	WordRepository                *repositories.WordRepositoryImpl
-	LabelRepository               *repositories.LabelRepositoryImpl
-	LevelRepository               *repositories.LevelRepositoryImpl
-	WordLearningHistoryRepository *repositories.WordLearningHistoryRepositoryImpl
+	WordRepository                repositories.WordRepository
+	LabelRepository               repositories.LabelRepository
+	LevelRepository               repositories.LevelRepository
+	WordLearningHistoryRepository repositories.WordLearningHistoryRepository
 
 	// Services
-	WordService                *services.WordServiceImpl
-	LabelService               *services.LabelServiceImpl
-	LevelService               *services.LevelServiceImpl
-	WordLearningHistoryService *services.WordLearningHistoryServiceImpl
-	WordDtoService             *services.WordDtoServiceImpl
+	WordService                services.WordService
+	LabelService               services.LabelService
+	LevelService               services.LevelService
+	WordLearningHistoryService services.WordLearningHistoryService
+	WordDtoService             services.WordDtoService
 
 	// Controllers
-	WordController                *controllers.WordControllerImpl
-	LevelController               *controllers.LevelControllerImpl
-	TagController                 *controllers.TagControllerImpl
-	WordLearningHistoryController *controllers.WordLearningHistoryControllerImpl
-	WordDtoController             *controllers.WordDtoControllerImpl
+	WordController                controllers.WordController
+	LevelController               controllers.LevelController
+	TagController                 controllers.TagController
+	WordLearningHistoryController controllers.WordLearningHistoryController
+	WordDtoController             controllers.WordDtoController
 }
 
 type MiddlewareComponents struct {
@@ -61,19 +61,22 @@ func InitializeAppComponents(db *gorm.DB) *AppComponents {
 	wordLearningHistoryController := &controllers.WordLearningHistoryControllerImpl{Service: wordLearningHistoryService}
 	wordDtoController := &controllers.WordDtoControllerImpl{WordDtoService: wordDtoService}
 
-	// Return an instance of AppComponents
+	// Return an instance of AppComponents with interfaces
 	return &AppComponents{
+		// Repositories
 		WordRepository:                wordRepo,
 		LabelRepository:               labelRepo,
 		LevelRepository:               levelRepo,
 		WordLearningHistoryRepository: wordLearningHistoryRepo,
 
+		// Services
 		WordService:                wordService,
 		LabelService:               labelService,
 		LevelService:               levelService,
 		WordLearningHistoryService: wordLearningHistoryService,
 		WordDtoService:             wordDtoService,
 
+		// Controllers
 		WordController:                wordController,
 		LevelController:               levelController,
 		TagController:                 tagController,

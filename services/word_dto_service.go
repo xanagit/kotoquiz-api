@@ -18,6 +18,9 @@ type WordDtoServiceImpl struct {
 	LearningHistoryRepo repositories.WordLearningHistoryRepository
 }
 
+// Make sure that WordDtoServiceImpl implements WordDtoService
+var _ WordDtoService = (*WordDtoServiceImpl)(nil)
+
 func (s *WordDtoServiceImpl) ListWordsIDs(userID uuid.UUID, tagIds []string, levelNameIds []string, nb int) (*dto.WordIdsList, error) {
 	// Fetch and validate words
 	allWordIDs, err := s.fetchAndValidateWords(tagIds, levelNameIds, nb)

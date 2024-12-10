@@ -18,6 +18,9 @@ type LabelServiceImpl struct {
 	Repo repositories.LabelRepository
 }
 
+// Make sure that LabelServiceImpl implements LabelService
+var _ LabelService = (*LabelServiceImpl)(nil)
+
 func (s *LabelServiceImpl) ListLabels(labelType models.LabelType) ([]*models.Label, error) {
 	return s.Repo.ListLabelsByType(labelType)
 }

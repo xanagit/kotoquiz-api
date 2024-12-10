@@ -18,6 +18,9 @@ type LevelServiceImpl struct {
 	Repo repositories.LevelRepository
 }
 
+// Make sure that LevelServiceImpl implements LevelService
+var _ LevelService = (*LevelServiceImpl)(nil)
+
 func (s *LevelServiceImpl) ListLevels() ([]*models.Level, error) {
 	return s.Repo.ListLevels()
 }

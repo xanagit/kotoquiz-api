@@ -15,6 +15,9 @@ type WordLearningHistoryServiceImpl struct {
 	Repo repositories.WordLearningHistoryRepository
 }
 
+// Make sure that WordLearningHistoryServiceImpl implements WordLearningHistoryService
+var _ WordLearningHistoryService = (*WordLearningHistoryServiceImpl)(nil)
+
 func (s *WordLearningHistoryServiceImpl) ProcessQuizResults(userID string, results []dto.WordQuizResult) error {
 	// Build list of word IDs and map of results (word ID -> WordQuizResult)
 	wordIDs := make([]uuid.UUID, len(results))

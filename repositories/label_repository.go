@@ -18,6 +18,9 @@ type LabelRepositoryImpl struct {
 	DB *gorm.DB
 }
 
+// Make sure that LabelRepositoryImpl implements LabelRepository
+var _ LabelRepository = (*LabelRepositoryImpl)(nil)
+
 func (r *LabelRepositoryImpl) ListLabelsByType(labelType models.LabelType) ([]*models.Label, error) {
 	var labels []*models.Label
 	result := r.DB.Where("type = ?", labelType).Find(&labels)

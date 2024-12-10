@@ -19,6 +19,9 @@ type LevelControllerImpl struct {
 	Service services.LevelService
 }
 
+// Make sure that LevelControllerImpl implements LevelController
+var _ LevelController = (*LevelControllerImpl)(nil)
+
 func (lc *LevelControllerImpl) ListLevels(c *gin.Context) {
 	levels, err := lc.Service.ListLevels()
 	if err != nil {

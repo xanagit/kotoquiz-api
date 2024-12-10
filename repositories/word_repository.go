@@ -20,6 +20,9 @@ type WordRepositoryImpl struct {
 	DB *gorm.DB
 }
 
+// Make sure that WordRepositoryImpl implements WordRepository
+var _ WordRepository = (*WordRepositoryImpl)(nil)
+
 func (r *WordRepositoryImpl) ListWordsIds(tagIds []string, levelNameIds []string, nb int) ([]string, error) {
 	var wordIDs []string
 

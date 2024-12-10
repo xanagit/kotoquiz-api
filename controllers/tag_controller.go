@@ -19,6 +19,9 @@ type TagControllerImpl struct {
 	Service services.LabelService
 }
 
+// Make sure that TagControllerImpl implements TagController
+var _ TagController = (*TagControllerImpl)(nil)
+
 func (tc *TagControllerImpl) ListTags(c *gin.Context) {
 	labels, err := tc.Service.ListLabels(models.Tag)
 	if err != nil {

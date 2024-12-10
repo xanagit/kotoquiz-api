@@ -19,6 +19,9 @@ type LevelRepositoryImpl struct {
 	DB *gorm.DB
 }
 
+// Make sure that LevelRepositoryImpl implements LevelRepository
+var _ LevelRepository = (*LevelRepositoryImpl)(nil)
+
 func (r *LevelRepositoryImpl) ListLevels() ([]*models.Level, error) {
 	var labels []*models.Level
 

@@ -17,6 +17,9 @@ type WordServiceImpl struct {
 	Repo repositories.WordRepository
 }
 
+// Make sure that WordServiceImpl implements WordService
+var _ WordService = (*WordServiceImpl)(nil)
+
 func (s *WordServiceImpl) ReadWord(id uuid.UUID) (*models.Word, error) {
 	return s.Repo.ReadWord(id)
 }

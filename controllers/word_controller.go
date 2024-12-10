@@ -18,6 +18,9 @@ type WordControllerImpl struct {
 	Service services.WordService
 }
 
+// Make sure that WordControllerImpl implements WordController
+var _ WordController = (*WordControllerImpl)(nil)
+
 func (s *WordControllerImpl) ReadWord(c *gin.Context) {
 	rawId := c.Param("id")
 	id, ok := parseUUID(rawId)
