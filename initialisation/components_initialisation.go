@@ -23,6 +23,7 @@ type AppComponents struct {
 	LevelService               services.LevelService
 	WordLearningHistoryService services.WordLearningHistoryService
 	WordDtoService             services.WordDtoService
+	RegistrationService        services.RegistrationService
 
 	// Controllers
 	WordController                controllers.WordController
@@ -30,6 +31,7 @@ type AppComponents struct {
 	TagController                 controllers.TagController
 	WordLearningHistoryController controllers.WordLearningHistoryController
 	WordDtoController             controllers.WordDtoController
+	RegistrationController        controllers.RegistrationController
 }
 
 type MiddlewareComponents struct {
@@ -37,7 +39,7 @@ type MiddlewareComponents struct {
 	AuthMiddleware middlewares.AuthMiddleware
 }
 
-func InitializeAppComponents(db *gorm.DB) *AppComponents {
+func InitializeAppComponents(db *gorm.DB, cfg *config.Config) *AppComponents {
 	// Repositories
 	wordRepo := &repositories.WordRepositoryImpl{DB: db}
 	labelRepo := &repositories.LabelRepositoryImpl{DB: db}
@@ -53,6 +55,7 @@ func InitializeAppComponents(db *gorm.DB) *AppComponents {
 		WordRepo:            wordRepo,
 		LearningHistoryRepo: wordLearningHistoryRepo,
 	}
+	registrationService := &services.RegistrationServiceImpl{KeycloakConfig: &cfg.Auth.Keycloak}
 
 	// Controllers
 	wordController := &controllers.WordControllerImpl{Service: wordService}
@@ -60,6 +63,7 @@ func InitializeAppComponents(db *gorm.DB) *AppComponents {
 	tagController := &controllers.TagControllerImpl{Service: labelService}
 	wordLearningHistoryController := &controllers.WordLearningHistoryControllerImpl{Service: wordLearningHistoryService}
 	wordDtoController := &controllers.WordDtoControllerImpl{WordDtoService: wordDtoService}
+	registrationController := &controllers.RegistrationControllerImpl{Service: registrationService}
 
 	// Return an instance of AppComponents with interfaces
 	return &AppComponents{
@@ -75,6 +79,7 @@ func InitializeAppComponents(db *gorm.DB) *AppComponents {
 		LevelService:               levelService,
 		WordLearningHistoryService: wordLearningHistoryService,
 		WordDtoService:             wordDtoService,
+		RegistrationService:        registrationService,
 
 		// Controllers
 		WordController:                wordController,
@@ -82,6 +87,7 @@ func InitializeAppComponents(db *gorm.DB) *AppComponents {
 		TagController:                 tagController,
 		WordLearningHistoryController: wordLearningHistoryController,
 		WordDtoController:             wordDtoController,
+		RegistrationController:        registrationController,
 	}
 }
 

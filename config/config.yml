@@ -8,7 +8,11 @@ database:
   port: 5432
 auth:
   keycloak:
+    baseUrl: "http://localhost:8180"
+    user: "admin"
+    password: "admin"
     realm: "kotoquiz"
+    adminCliClientId: "admin-cli"
     clientId: "kotoquiz-api"
     clientSecret: "ZhDTjVvcm8grZqKaDnitO7WB84QL53Kn"
     issuerUrl: "http://localhost:8180/realms/kotoquiz"

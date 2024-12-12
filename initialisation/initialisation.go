@@ -12,6 +12,11 @@ import (
 )
 
 func ConfigureRoutes(r *gin.Engine, components *AppComponents, middlewareComponents *MiddlewareComponents) {
+	public := r.Group("/api/v1/public")
+	{
+		public.POST("/register", components.RegistrationController.RegisterUser)
+	}
+
 	appUserGroup := r.Group("/api/v1/app")
 	if middlewareComponents != nil {
 		appUserGroup.Use(middlewareComponents.AuthMiddleware.AuthRequired())

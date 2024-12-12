@@ -75,3 +75,18 @@ psql -h localhost -U admin postgres
 > DROP DATABASE kotoquiz;
 > CREATE DATABASE kotoquiz;
 ```
+
+# Configuration application Flutter
+[POST] http://localhost:8180/realms/kotoquiz/protocol/openid-connect/registrations
+```json
+{
+    "username": "newuser",
+    "email": "user@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "password": "password",
+    "enabled": true
+}
+```
+
+

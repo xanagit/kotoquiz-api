@@ -19,7 +19,7 @@ func main() {
 		log.Fatalf("Unabled to connect to database %v", err)
 	}
 
-	components := initialisation.InitializeAppComponents(db)
+	components := initialisation.InitializeAppComponents(db, cfg)
 	middlewares, mcErr := initialisation.InitializeMiddlewareComponents(cfg)
 	if mcErr != nil {
 		log.Fatalf("Failed to initialize app components: %v", err)

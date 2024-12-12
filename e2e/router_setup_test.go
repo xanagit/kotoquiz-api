@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"github.com/xanagit/kotoquiz-api/config"
 	"github.com/xanagit/kotoquiz-api/initialisation"
 	"github.com/xanagit/kotoquiz-api/middlewares"
 	"log"
@@ -161,7 +162,17 @@ func setupRouter() (*gin.Engine, error) {
 		return nil, err
 	}
 
-	components := initialisation.InitializeAppComponents(db)
+	cfg := &config.Config{
+		Database: config.DatabaseConfig{
+			Host:     "localhost",
+			User:     "postgres",
+			Password: "password",
+			Name:     "testdb",
+			Port:     5433,
+		},
+	}
+
+	components := initialisation.InitializeAppComponents(db, cfg)
 	middlewareComponents, mcErr := InitializeMiddlewareComponents()
 	if mcErr != nil {
 		log.Fatalf("Failed to initialize app components: %v", err)
