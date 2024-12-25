@@ -6,3 +6,19 @@ database:
   password: mypassword
   name: kotoquiz
   port: 5432
+auth:
+  keycloak:
+    baseUrl: "http://localhost:8180"
+    user: "admin"
+    password: "admin"
+    realm: "kotoquiz"
+    adminCliClientId: "admin-cli"
+    clientId: "kotoquiz-api"
+    clientSecret: "ZhDTjVvcm8grZqKaDnitO7WB84QL53Kn"
+    issuerUrl: "http://localhost:8180/realms/kotoquiz"
+    redirectUrl: "http://localhost:8080/api/v1/auth/callback"
+    callbackUrl: "http://localhost:8080/api/v1/auth/callback"
+    logoutUrl: "http://localhost:8180/realms/kotoquiz/protocol/openid-connect/logout"
+    cookieDomain: "localhost"
+    cookieSecure: false
+    cookieMaxAge: 3600
