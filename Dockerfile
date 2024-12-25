@@ -12,7 +12,7 @@ COPY bin/config/config.yml /app/config/config.yml
 RUN chmod +x /app/main
 
 # Passer Gin en mode production
-export GIN_MODE=release
+ENV GIN_MODE=release
 
 # Définir la commande par défaut pour exécuter le binaire
 CMD ["/app/main"]
