@@ -37,4 +37,4 @@ clean:
 	@echo "Cleaning up..."
 	@rm -rf $(BIN_DIR)
 
-.PHONY: all build prepare-config release clean
+.PHONY: all build build-arm64 prepare-config release release-arm64 clean

@@ -2,37 +2,33 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/xanagit/kotoquiz-api/models"
 	"github.com/xanagit/kotoquiz-api/services"
-	"log"
 	"net/http"
 )
 
 type WordController interface {
-	GetWords() ([]*models.Word, error)
-	GetWordByID(id string) (*models.Word, error)
-	CreateWord(word *models.Word) error
-	UpdateWord(word *models.Word) error
-	DeleteWord(id string) error
+	ReadWord(c *gin.Context)
+	CreateWord(c *gin.Context)
+	UpdateWord(c *gin.Context)
+	DeleteWord(c *gin.Context)
 }
 
 type WordControllerImpl struct {
 	Service services.WordService
 }
 
-func (s *WordControllerImpl) GetWords(c *gin.Context) {
-	words, err := s.Service.GetWords()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// Make sure that WordControllerImpl implements WordController
+var _ WordController = (*WordControllerImpl)(nil)
+
+func (s *WordControllerImpl) ReadWord(c *gin.Context) {
+	rawId := c.Param("id")
+	id, ok := parseUUID(rawId)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid UUID format"})
 		return
 	}
-	c.JSON(http.StatusOK, words)
-}
-
-func (s *WordControllerImpl) GetWordByID(c *gin.Context) {
-	id := c.Param("id")
-	word, err := s.Service.GetWordByID(id)
+	word, err := s.Service.ReadWord(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -46,6 +42,7 @@ func (s *WordControllerImpl) CreateWord(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
 	if err := s.Service.CreateWord(&word); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -54,14 +51,19 @@ func (s *WordControllerImpl) CreateWord(c *gin.Context) {
 }
 
 func (s *WordControllerImpl) UpdateWord(c *gin.Context) {
-	id := c.Param("id")
+	rawId := c.Param("id")
+	id, ok := parseUUID(rawId)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid UUID format"})
+		return
+	}
 	var word models.Word
 	if err := c.ShouldBindJSON(&word); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	word.ID = fromStrToUuid(id)
+	word.ID = id
 	if err := s.Service.UpdateWord(&word); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -70,18 +72,15 @@ func (s *WordControllerImpl) UpdateWord(c *gin.Context) {
 }
 
 func (s *WordControllerImpl) DeleteWord(c *gin.Context) {
-	id := c.Param("id")
+	rawId := c.Param("id")
+	id, ok := parseUUID(rawId)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid UUID format"})
+		return
+	}
 	if err := s.Service.DeleteWord(id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	c.Status(http.StatusNoContent)
-}
-
-func fromStrToUuid(id string) uuid.UUID {
-	parsed, err := uuid.Parse(id)
-	if err != nil {
-		log.Fatalf("Invalid UUID format: %v", err)
-	}
-	return parsed
 }

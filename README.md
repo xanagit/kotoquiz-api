@@ -56,6 +56,10 @@ Exporter la variable DOCKER_BUILDKIT
 export DOCKER_BUILDKIT=1
 ```
 
+## Start Postgres
+```zsh
+docker compose up -d
+```
 
 ## Go configuration
 ### Configure env variables
@@ -63,4 +67,26 @@ export DOCKER_BUILDKIT=1
 go env -w GOSUMDB=sum.golang.org
 go env -w GOPROXY=direct
 ```
+
+# Development
+## Recreate database
+```zsh
+psql -h localhost -U admin postgres
+> DROP DATABASE kotoquiz;
+> CREATE DATABASE kotoquiz;
+```
+
+# Configuration application Flutter
+[POST] http://localhost:8180/realms/kotoquiz/protocol/openid-connect/registrations
+```json
+{
+    "username": "newuser",
+    "email": "user@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "password": "password",
+    "enabled": true
+}
+```
+
 
