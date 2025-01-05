@@ -1,18 +1,41 @@
-# Utiliser une image de base légère, par exemple alpine
-FROM alpine:latest
+# Build stage
+FROM golang:23-alpine AS builder
 
-# Définir un répertoire de travail dans le conteneur
+# Install necessary dependencies
+RUN apk add --no-cache git make build-base
+
+# Define the working directory
 WORKDIR /app
 
-# Copier le binaire et le fichier de configuration dans l'image Docker
-COPY bin/main /app/main
-COPY bin/config/config.yml /app/config/config.yml
+# Copy the go mod and sum files
+COPY go.mod go.sum ./
 
-# Assurez-vous que le binaire a les permissions d'exécution
-RUN chmod +x /app/main
+# Download dependencies
+RUN go mod download
 
-# Passer Gin en mode production
+# Copy the source code
+COPY . .
+
+# Build the binary
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd
+
+# Final stage
+FROM alpine:latest
+
+# Install CA certificates for HTTPS
+RUN apk --no-cache add ca-certificates tzdata
+
+WORKDIR /app
+
+# Copy the binary from the build stage
+COPY --from=builder /app/main .
+COPY --from=builder /app/config/config-prod.yml ./config/config.yml
+
+# Expose the port
+EXPOSE 8080
+
+# Configure gin to run in production mode
 ENV GIN_MODE=release
 
-# Définir la commande par défaut pour exécuter le binaire
+# Run the binary
 CMD ["/app/main"]
