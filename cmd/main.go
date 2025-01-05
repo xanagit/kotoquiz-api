@@ -22,6 +22,7 @@ func main() {
 	components := initialisation.InitializeAppComponents(db, cfg)
 	middlewares, mcErr := initialisation.InitializeMiddlewareComponents(cfg)
 	if mcErr != nil {
+		log.Printf("Configuration: %+v", cfg)
 		log.Fatalf("Failed to initialize app components: %v", err)
 	}
 	// Gin application configuration
