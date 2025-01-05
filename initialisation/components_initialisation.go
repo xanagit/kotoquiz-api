@@ -18,6 +18,7 @@ type AppComponents struct {
 	WordLearningHistoryRepository repositories.WordLearningHistoryRepository
 
 	// Services
+	HealthService              services.ApiHealthService
 	WordService                services.WordService
 	LabelService               services.LabelService
 	LevelService               services.LevelService
@@ -26,6 +27,7 @@ type AppComponents struct {
 	RegistrationService        services.RegistrationService
 
 	// Controllers
+	HealthController              controllers.HealthController
 	WordController                controllers.WordController
 	LevelController               controllers.LevelController
 	TagController                 controllers.TagController
@@ -47,6 +49,7 @@ func InitializeAppComponents(db *gorm.DB, cfg *config.Config) *AppComponents {
 	wordLearningHistoryRepo := &repositories.WordLearningHistoryRepositoryImpl{DB: db}
 
 	// Services
+	healthService := &services.ApiHealthServiceImpl{DB: db}
 	wordService := &services.WordServiceImpl{Repo: wordRepo}
 	labelService := &services.LabelServiceImpl{Repo: labelRepo}
 	levelService := &services.LevelServiceImpl{Repo: levelRepo}
@@ -58,6 +61,7 @@ func InitializeAppComponents(db *gorm.DB, cfg *config.Config) *AppComponents {
 	registrationService := &services.RegistrationServiceImpl{KeycloakConfig: &cfg.Auth.Keycloak}
 
 	// Controllers
+	healthController := &controllers.HealthControllerImpl{Service: healthService}
 	wordController := &controllers.WordControllerImpl{Service: wordService}
 	levelController := &controllers.LevelControllerImpl{Service: levelService}
 	tagController := &controllers.TagControllerImpl{Service: labelService}
@@ -74,6 +78,7 @@ func InitializeAppComponents(db *gorm.DB, cfg *config.Config) *AppComponents {
 		WordLearningHistoryRepository: wordLearningHistoryRepo,
 
 		// Services
+		HealthService:              healthService,
 		WordService:                wordService,
 		LabelService:               labelService,
 		LevelService:               levelService,
@@ -82,6 +87,7 @@ func InitializeAppComponents(db *gorm.DB, cfg *config.Config) *AppComponents {
 		RegistrationService:        registrationService,
 
 		// Controllers
+		HealthController:              healthController,
 		WordController:                wordController,
 		LevelController:               levelController,
 		TagController:                 tagController,

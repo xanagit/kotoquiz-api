@@ -12,6 +12,8 @@ import (
 )
 
 func ConfigureRoutes(r *gin.Engine, components *AppComponents, middlewareComponents *MiddlewareComponents) {
+	r.GET("/health", components.HealthController.HealthCheck)
+
 	public := r.Group("/api/v1/public")
 	{
 		public.POST("/register", components.RegistrationController.RegisterUser)
