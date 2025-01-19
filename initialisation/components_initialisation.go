@@ -38,6 +38,7 @@ type AppComponents struct {
 
 type MiddlewareComponents struct {
 	// Middlewares
+	CORSMiddleware middlewares.CORSMiddleware
 	AuthMiddleware middlewares.AuthMiddleware
 }
 
@@ -98,12 +99,17 @@ func InitializeAppComponents(db *gorm.DB, cfg *config.Config) *AppComponents {
 }
 
 func InitializeMiddlewareComponents(cfg *config.Config) (*MiddlewareComponents, error) {
-	authMiddleware, err := middlewares.NewAuthMiddleware(&cfg.Auth.Keycloak)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize auth middleware: %v", err)
+	corsMiddleware, corsErr := middlewares.NewCORSMiddleware(&cfg.Auth.ApiConfig)
+	if corsErr != nil {
+		return nil, fmt.Errorf("failed to initialize cors middleware: %v", corsErr)
+	}
+	authMiddleware, authErr := middlewares.NewAuthMiddleware(&cfg.Auth.Keycloak)
+	if authErr != nil {
+		return nil, fmt.Errorf("failed to initialize auth middleware: %v", authErr)
 	}
 
 	return &MiddlewareComponents{
+		CORSMiddleware: corsMiddleware,
 		AuthMiddleware: authMiddleware,
 	}, nil
 }

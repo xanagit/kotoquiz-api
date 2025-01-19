@@ -12,18 +12,19 @@ import (
 )
 
 func ConfigureRoutes(r *gin.Engine, components *AppComponents, middlewareComponents *MiddlewareComponents) {
+	r.Use(middlewareComponents.CORSMiddleware.HandleCORS())
 	r.GET("/health", components.HealthController.HealthCheck)
 
 	public := r.Group("/api/v1/public")
+	public.Use(middlewareComponents.CORSMiddleware.HandleCORS())
 	{
 		public.POST("/register", components.RegistrationController.RegisterUser)
 	}
 
 	appUserGroup := r.Group("/api/v1/app")
-	if middlewareComponents != nil {
-		appUserGroup.Use(middlewareComponents.AuthMiddleware.AuthRequired())
-		appUserGroup.Use(middlewareComponents.AuthMiddleware.RequireRoles(string(middlewares.UserRole)))
-	}
+	appUserGroup.Use(middlewareComponents.CORSMiddleware.HandleCORS())
+	appUserGroup.Use(middlewareComponents.AuthMiddleware.AuthRequired())
+	appUserGroup.Use(middlewareComponents.AuthMiddleware.RequireRoles(string(middlewares.UserRole)))
 	{
 		appUserGroup.GET("/words/q", components.WordDtoController.ListWordsIDs)
 		appUserGroup.GET("/words", components.WordDtoController.ListDtoWords)    // query param: ids, lang
@@ -34,10 +35,9 @@ func ConfigureRoutes(r *gin.Engine, components *AppComponents, middlewareCompone
 	}
 
 	techGroup := r.Group("/api/v1/tech")
-	if middlewareComponents != nil {
-		techGroup.Use(middlewareComponents.AuthMiddleware.AuthRequired())
-		techGroup.Use(middlewareComponents.AuthMiddleware.RequireRoles(string(middlewares.AdminRole)))
-	}
+	techGroup.Use(middlewareComponents.CORSMiddleware.HandleCORS())
+	techGroup.Use(middlewareComponents.AuthMiddleware.AuthRequired())
+	techGroup.Use(middlewareComponents.AuthMiddleware.RequireRoles(string(middlewares.AdminRole)))
 	{
 		techGroup.GET("/words/:id", components.WordController.ReadWord)
 		techGroup.POST("/words", components.WordController.CreateWord)

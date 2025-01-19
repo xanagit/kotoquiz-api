@@ -22,3 +22,26 @@ auth:
     cookieDomain: "localhost"
     cookieSecure: false
     cookieMaxAge: 3600
+  apiConfig:
+    allowOrigins:
+      - http://localhost:8080
+      - https://kotoquiz.com
+    allowMethods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+    allowHeaders:
+      - Origin
+      - Content-Type
+      - Content-Length
+      - Accept-Encoding
+      - X-CSRF-Token
+      - Authorization
+      - accept
+      - origin
+      - Cache-Control
+      - X-Requested-Wit
+    accessControlMaxAge: 86400 # 24 hours
+    isCredentials: true

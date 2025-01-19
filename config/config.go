@@ -35,7 +35,8 @@ type DatabaseConfig struct {
 }
 
 type AuthConfig struct {
-	Keycloak KeycloakConfig
+	Keycloak  KeycloakConfig `mapstructure:"keycloak"`
+	ApiConfig ApiConfig      `mapstructure:"apiConfig"`
 }
 
 type KeycloakConfig struct {
@@ -53,6 +54,14 @@ type KeycloakConfig struct {
 	CookieDomain     string `mapstructure:"cookieDomain"`
 	CookieSecure     bool   `mapstructure:"cookieSecure"`
 	CookieMaxAge     int    `mapstructure:"cookieMaxAge"`
+}
+
+type ApiConfig struct {
+	AllowOrigins        []string `mapstructure:"allowOrigins"`
+	AllowMethods        []string `mapstructure:"allowMethods"`
+	AllowHeaders        []string `mapstructure:"allowHeaders"`
+	AccessControlMaxAge int      `mapstructure:"accessControlMaxAge"`
+	IsCredentials       bool     `mapstructure:"isCredentials"`
 }
 
 // GetConfig returns the singleton instance of the configuration
@@ -92,25 +101,30 @@ func loadConfig() (*Config, error) {
 
 	// Bind environment variables for specific configuration fields
 	envVars := map[string]string{
-		"database.host":                  "APP_DATABASE_HOST",
-		"database.user":                  "APP_DATABASE_USER",
-		"database.password":              "APP_DATABASE_PASSWORD",
-		"database.name":                  "APP_DATABASE_NAME",
-		"database.port":                  "APP_DATABASE_PORT",
-		"auth.keycloak.baseUrl":          "APP_KEYCLOAK_BASE_URL",
-		"auth.keycloak.user":             "APP_KEYCLOAK_USER",
-		"auth.keycloak.password":         "APP_KEYCLOAK_PASSWORD",
-		"auth.keycloak.realm":            "APP_KEYCLOAK_REALM",
-		"auth.keycloak.adminCliClientId": "APP_KEYCLOAK_ADMIN_CLI_CLIENT_ID",
-		"auth.keycloak.clientId":         "APP_KEYCLOAK_CLIENT_ID",
-		"auth.keycloak.clientSecret":     "APP_KEYCLOAK_CLIENT_SECRET",
-		"auth.keycloak.issuerUrl":        "APP_KEYCLOAK_ISSUER_URL",
-		"auth.keycloak.redirectUrl":      "APP_KEYCLOAK_REDIRECT_URL",
-		"auth.keycloak.callbackUrl":      "APP_KEYCLOAK_CALLBACK_URL",
-		"auth.keycloak.logoutUrl":        "APP_KEYCLOAK_LOGOUT_URL",
-		"auth.keycloak.cookieDomain":     "APP_KEYCLOAK_COOKIE_DOMAIN",
-		"auth.keycloak.cookieSecure":     "APP_KEYCLOAK_COOKIE_SECURE",
-		"auth.keycloak.cookieMaxAge":     "APP_KEYCLOAK_COOKIE_MAX_AGE",
+		"database.host":                      "APP_DATABASE_HOST",
+		"database.user":                      "APP_DATABASE_USER",
+		"database.password":                  "APP_DATABASE_PASSWORD",
+		"database.name":                      "APP_DATABASE_NAME",
+		"database.port":                      "APP_DATABASE_PORT",
+		"auth.keycloak.baseUrl":              "APP_KEYCLOAK_BASE_URL",
+		"auth.keycloak.user":                 "APP_KEYCLOAK_USER",
+		"auth.keycloak.password":             "APP_KEYCLOAK_PASSWORD",
+		"auth.keycloak.realm":                "APP_KEYCLOAK_REALM",
+		"auth.keycloak.adminCliClientId":     "APP_KEYCLOAK_ADMIN_CLI_CLIENT_ID",
+		"auth.keycloak.clientId":             "APP_KEYCLOAK_CLIENT_ID",
+		"auth.keycloak.clientSecret":         "APP_KEYCLOAK_CLIENT_SECRET",
+		"auth.keycloak.issuerUrl":            "APP_KEYCLOAK_ISSUER_URL",
+		"auth.keycloak.redirectUrl":          "APP_KEYCLOAK_REDIRECT_URL",
+		"auth.keycloak.callbackUrl":          "APP_KEYCLOAK_CALLBACK_URL",
+		"auth.keycloak.logoutUrl":            "APP_KEYCLOAK_LOGOUT_URL",
+		"auth.keycloak.cookieDomain":         "APP_KEYCLOAK_COOKIE_DOMAIN",
+		"auth.keycloak.cookieSecure":         "APP_KEYCLOAK_COOKIE_SECURE",
+		"auth.keycloak.cookieMaxAge":         "APP_KEYCLOAK_COOKIE_MAX_AGE",
+		"auth.apiConfig.allowOrigins":        "APP_API_CONFIG_ALLOW_ORIGIN",
+		"auth.apiConfig.allowMethods":        "APP_API_CONFIG_ALLOW_METHODS",
+		"auth.apiConfig.allowHeaders":        "APP_API_CONFIG_ALLOW_HEADERS",
+		"auth.apiConfig.accessControlMaxAge": "APP_API_CONFIG_ACCESS_CONTROL_MAX_AGE",
+		"auth.apiConfig.isCredentials":       "APP_API_CONFIG_IS_CREDENTIAL",
 	}
 	for key, env := range envVars {
 		if err := v.BindEnv(key, env); err != nil {
