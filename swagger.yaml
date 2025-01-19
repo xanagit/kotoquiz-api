@@ -1,0 +1,549 @@
+# Kotoquiz API Documentation
+openapi: 3.0.3
+info:
+  title: Kotoquiz API
+  description: API for managing Japanese vocabulary learning
+  version: 1.0.0
+  contact:
+    name: Damien Ridereau
+
+servers:
+  - url: https://api.kotoquiz.com
+    description: Production server
+  - url: http://localhost:8080
+    description: Local development
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: Invalid request parameters
+
+    Word:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        kanji:
+          type: string
+          example: "漢字"
+        yomi:
+          type: string
+          example: "かんじ"
+        yomiType:
+          type: string
+          enum: [ONYOMI, KUNYOMI]
+        imageURL:
+          type: string
+          format: uri
+        translation:
+          $ref: '#/components/schemas/Label'
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Label'
+        levels:
+          type: array
+          items:
+            $ref: '#/components/schemas/Level'
+
+    Label:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        en:
+          type: string
+          example: "writing"
+        fr:
+          type: string
+          example: "écriture"
+        type:
+          type: string
+          enum: [TAG, CATEGORY, LEVEL_NAME, TRANSLATION]
+
+    Level:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [BUILT_IN_LEVEL, CUSTOM_LEVEL]
+        category:
+          $ref: '#/components/schemas/Label'
+        levelNames:
+          type: array
+          items:
+            $ref: '#/components/schemas/Label'
+
+    WordDTO:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        kanji:
+          type: string
+          example: "漢字"
+        yomi:
+          type: string
+          example: "かんじ"
+        yomiType:
+          type: string
+          enum: [ONYOMI, KUNYOMI]
+        imageURL:
+          type: string
+          format: uri
+        translation:
+          type: string
+          example: "kanji"
+        tags:
+          type: array
+          items:
+            type: string
+            example: "JLPT N5"
+        levels:
+          type: array
+          items:
+            $ref: '#/components/schemas/LevelDTO'
+
+    LevelDTO:
+      type: object
+      properties:
+        category:
+          type: string
+          example: "JLPT"
+        levelNames:
+          type: array
+          items:
+            type: string
+            example: ["N5", "N4"]
+
+    QuizResults:
+      type: object
+      properties:
+        userId:
+          type: string
+          description: Keycloak user ID
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/WordQuizResult'
+
+    WordQuizResult:
+      type: object
+      properties:
+        wordId:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [SUCCESS, ERROR, UNANSWERED]
+
+    RegistrationRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 3
+          example: "johndoe"
+        email:
+          type: string
+          format: email
+          example: "john.doe@example.com"
+        password:
+          type: string
+          minLength: 8
+          example: "securePassword123"
+
+paths:
+  /api/v1/public/register:
+    post:
+      summary: Register a new user
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrationRequest'
+      responses:
+        '201':
+          description: User successfully registered
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/app/words/q:
+    get:
+      summary: Get word IDs based on filters
+      security:
+        - bearerAuth: []
+      tags:
+        - Words
+      parameters:
+        - in: query
+          name: tags
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: false
+        - in: query
+          name: levelNames
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: false
+        - in: query
+          name: nb
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: userId
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of word IDs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ids:
+                    type: array
+                    items:
+                      type: string
+                      format: uuid
+
+  /api/v1/app/words:
+    get:
+      summary: Get words by IDs
+      security:
+        - bearerAuth: []
+      tags:
+        - Words
+      parameters:
+        - in: query
+          name: ids
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+          style: form
+          explode: false
+        - in: query
+          name: lang
+          schema:
+            type: string
+            enum: [en, fr]
+            default: en
+      responses:
+        '200':
+          description: List of words
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WordDTO'
+
+  /api/v1/app/words/{id}:
+    get:
+      summary: Get a specific word
+      security:
+        - bearerAuth: []
+      tags:
+        - Words
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: lang
+          schema:
+            type: string
+            enum: [en, fr]
+            default: en
+      responses:
+        '200':
+          description: Word details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WordDTO'
+
+  /api/v1/app/quiz/results:
+    post:
+      summary: Submit quiz results
+      security:
+        - bearerAuth: []
+      tags:
+        - Quiz
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuizResults'
+      responses:
+        '200':
+          description: Results successfully processed
+
+  /api/v1/app/tags:
+    get:
+      summary: List all tags
+      security:
+        - bearerAuth: []
+      tags:
+        - Tags
+      responses:
+        '200':
+          description: List of tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Label'
+
+  /api/v1/app/levels:
+    get:
+      summary: List all levels
+      security:
+        - bearerAuth: []
+      tags:
+        - Levels
+      responses:
+        '200':
+          description: List of levels
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Level'
+
+  /api/v1/tech/words:
+    post:
+      summary: Create a new word
+      security:
+        - bearerAuth: []
+      tags:
+        - Technical
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Word'
+      responses:
+        '201':
+          description: Word created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Word'
+
+  /api/v1/tech/words/{id}:
+    put:
+      summary: Update a word
+      security:
+        - bearerAuth: []
+      tags:
+        - Technical
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Word'
+      responses:
+        '200':
+          description: Word updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Word'
+    delete:
+      summary: Delete a word
+      security:
+        - bearerAuth: []
+      tags:
+        - Technical
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Word deleted successfully
+
+  /api/v1/tech/tags:
+    post:
+      summary: Create a new tag
+      security:
+        - bearerAuth: []
+      tags:
+        - Technical
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Label'
+      responses:
+        '201':
+          description: Tag created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Label'
+
+  /api/v1/tech/tags/{id}:
+    put:
+      summary: Update a tag
+      security:
+        - bearerAuth: []
+      tags:
+        - Technical
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Label'
+      responses:
+        '200':
+          description: Tag updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Label'
+    delete:
+      summary: Delete a tag
+      security:
+        - bearerAuth: []
+      tags:
+        - Technical
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Tag deleted successfully
+
+  /api/v1/tech/levels:
+    post:
+      summary: Create a new level
+      security:
+        - bearerAuth: []
+      tags:
+        - Technical
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Level'
+      responses:
+        '201':
+          description: Level created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Level'
+
+  /api/v1/tech/levels/{id}:
+    put:
+      summary: Update a level
+      security:
+        - bearerAuth: []
+      tags:
+        - Technical
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Level'
+      responses:
+        '200':
+          description: Level updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Level'
+    delete:
+      summary: Delete a level
+      security:
+        - bearerAuth: []
+      tags:
+        - Technical
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Level deleted successfully
