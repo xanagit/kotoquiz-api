@@ -49,9 +49,18 @@ func (m *MockAuthMiddleware) RequireRoles(_ ...string) gin.HandlerFunc {
 	}
 }
 
+type MockCorsMiddleware struct{}
+
+func (cm *MockCorsMiddleware) HandleCORS() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Next()
+	}
+}
+
 func InitializeMiddlewareComponents() (*initialisation.MiddlewareComponents, error) {
 	return &initialisation.MiddlewareComponents{
 		AuthMiddleware: &MockAuthMiddleware{},
+		CORSMiddleware: &MockCorsMiddleware{},
 	}, nil
 }
 

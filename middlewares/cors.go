@@ -5,6 +5,7 @@ import (
 	"github.com/xanagit/kotoquiz-api/config"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 // CORSConfig represents the configuration for CORS middleware
@@ -47,14 +48,26 @@ func DefaultCORSConfig(cfg *config.ApiConfig) *CORSConfig {
 // HandleCORS creates a middleware function to handle CORS
 func (cm *CORSMiddlewareImpl) HandleCORS() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Set CORS headers
-		c.Header("Access-Control-Allow-Origin", joinStrings(cm.CORSConfig.AllowOrigins))
-		c.Header("Access-Control-Allow-Methods", joinStrings(cm.CORSConfig.AllowMethods))
-		c.Header("Access-Control-Allow-Headers", joinStrings(cm.CORSConfig.AllowHeaders))
-		c.Header("Access-Control-Max-Age", strconv.Itoa(cm.CORSConfig.MaxAge))
+		origin := c.Request.Header.Get("Origin")
+		allowOrigin := ""
 
-		if cm.CORSConfig.Credentials {
-			c.Header("Access-Control-Allow-Credentials", "true")
+		isDebug := gin.Mode() == gin.DebugMode
+
+		// Check whether origin is authorized
+		if (isDebug && strings.HasPrefix(origin, "http://localhost:")) || contains(cm.CORSConfig.AllowOrigins, origin) {
+			allowOrigin = origin
+		}
+
+		if allowOrigin != "" {
+			// Set CORS headers
+			c.Header("Access-Control-Allow-Origin", allowOrigin)
+			c.Header("Access-Control-Allow-Methods", joinStrings(cm.CORSConfig.AllowMethods))
+			c.Header("Access-Control-Allow-Headers", joinStrings(cm.CORSConfig.AllowHeaders))
+			c.Header("Access-Control-Max-Age", strconv.Itoa(cm.CORSConfig.MaxAge))
+
+			if cm.CORSConfig.Credentials {
+				c.Header("Access-Control-Allow-Credentials", "true")
+			}
 		}
 
 		// Handle preflight requests
@@ -78,4 +91,14 @@ func joinStrings(strings []string) string {
 		result += ", " + s
 	}
 	return result
+}
+
+// Check whether a value is present in a slice
+func contains(slice []string, value string) bool {
+	for _, item := range slice {
+		if item == value {
+			return true
+		}
+	}
+	return false
 }
