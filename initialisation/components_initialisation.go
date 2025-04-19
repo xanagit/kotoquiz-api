@@ -1,3 +1,4 @@
+// Package initialisation handles application component initialization and wiring
 package initialisation
 
 import (
@@ -11,6 +12,8 @@ import (
 	"gorm.io/gorm"
 )
 
+// AppComponents holds all the application components (repositories, services, controllers)
+// used for dependency injection throughout the application
 type AppComponents struct {
 	// Repositories
 	WordRepository                repositories.WordRepository
@@ -37,12 +40,23 @@ type AppComponents struct {
 	RegistrationController        controllers.RegistrationController
 }
 
+// MiddlewareComponents holds all middleware components used across the application
 type MiddlewareComponents struct {
 	// Middlewares
 	CORSMiddleware middlewares.CORSMiddleware
 	AuthMiddleware middlewares.AuthMiddleware
 }
 
+// InitializeAppComponents creates and wires together all application components
+// This function implements the dependency injection pattern, creating repositories,
+// services, and controllers and connecting them appropriately.
+//
+// Parameters:
+//   - db: *gorm.DB - The database connection to use for repositories
+//   - cfg: *config.Config - The application configuration
+//
+// Returns:
+//   - *AppComponents - The initialized application components
 func InitializeAppComponents(db *gorm.DB, cfg *config.Config) *AppComponents {
 	// Repositories
 	wordRepo := &repositories.WordRepositoryImpl{DB: db}
@@ -99,6 +113,15 @@ func InitializeAppComponents(db *gorm.DB, cfg *config.Config) *AppComponents {
 	}
 }
 
+// InitializeMiddlewareComponents creates and initializes middleware components
+//
+// Parameters:
+//   - cfg: *config.Config - The application configuration containing middleware settings
+//   - log: *zap.Logger - Logger for middleware initialization
+//
+// Returns:
+//   - *MiddlewareComponents - The initialized middleware components
+//   - error - Any error that occurred during initialization
 func InitializeMiddlewareComponents(cfg *config.Config, log *zap.Logger) (*MiddlewareComponents, error) {
 	corsMiddleware, corsErr := middlewares.NewCORSMiddleware(&cfg.Auth.ApiConfig)
 	if corsErr != nil {

@@ -1,3 +1,4 @@
+// Package controllers provides HTTP handlers for the application's API endpoints
 package controllers
 
 import (
@@ -8,11 +9,17 @@ import (
 	"net/http"
 )
 
+// WordLearningHistoryController defines the interface for endpoints that handle
+// word learning history records, including tracking quiz results and user progress
 type WordLearningHistoryController interface {
+	// ProcessQuizResults handles POST requests to process and store quiz results for a user
 	ProcessQuizResults(c *gin.Context)
 }
 
+// WordLearningHistoryControllerImpl implements the WordLearningHistoryController interface
+// and handles operations related to tracking and managing word learning progress
 type WordLearningHistoryControllerImpl struct {
+	// Service is the business logic layer for word learning history operations
 	Service services.WordLearningHistoryService
 }
 
@@ -30,6 +37,19 @@ var _ WordLearningHistoryController = (*WordLearningHistoryControllerImpl)(nil)
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/app/quiz/results [post]
+//
+// ProcessQuizResults handles POST requests to submit and process quiz results.
+// It extracts the user ID from the authentication token and updates the word learning history
+// based on the submitted quiz results.
+//
+// The request body must contain a QuizResults JSON structure with individual word results.
+// On success, it returns HTTP 200 OK with no content.
+//
+// Possible responses:
+//   - 200 OK: Quiz results successfully processed
+//   - 400 Bad Request: Invalid request format
+//   - 401 Unauthorized: Missing or invalid authentication token
+//   - 500 Internal Server Error: Error processing quiz results
 func (ctrl *WordLearningHistoryControllerImpl) ProcessQuizResults(c *gin.Context) {
 	var quizResults dto.QuizResults
 	if err := c.ShouldBindJSON(&quizResults); err != nil {

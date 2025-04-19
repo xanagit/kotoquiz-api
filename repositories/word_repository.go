@@ -1,3 +1,6 @@
+// Package repositories implements the data access layer of the application
+// It provides interfaces and implementations for accessing and manipulating
+// data stored in the database.
 package repositories
 
 import (
@@ -7,6 +10,8 @@ import (
 	"gorm.io/gorm"
 )
 
+// WordRepository defines the interface for word-related database operations
+// It provides methods to perform CRUD operations on Word models
 type WordRepository interface {
 	ListWordsIds(tagIds []string, levelNameIds []string, nb int) ([]string, error)
 	ListWordsByIds(ids []uuid.UUID) ([]*models.Word, error)

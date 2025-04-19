@@ -1,3 +1,4 @@
+// Package controllers implements HTTP handlers for the application API endpoints
 package controllers
 
 import (
@@ -7,14 +8,23 @@ import (
 	"net/http"
 )
 
+// TagController defines the interface for tag-related HTTP endpoints
+// It provides methods to manage categorization tags for words in the system
 type TagController interface {
+	// ListTags handles GET requests to retrieve all tags
 	ListTags(c *gin.Context)
+	// CreateTag handles POST requests to create a new tag
 	CreateTag(c *gin.Context)
+	// ReadTag handles GET requests to retrieve a specific tag by ID
 	ReadTag(c *gin.Context)
+	// UpdateTag handles PUT requests to update an existing tag
 	UpdateTag(c *gin.Context)
+	// DeleteTag handles DELETE requests to remove a tag
 	DeleteTag(c *gin.Context)
 }
 
+// TagControllerImpl implements the TagController interface
+// It depends on the LabelService for business logic operations on tags
 type TagControllerImpl struct {
 	Service services.LabelService
 }
@@ -22,6 +32,12 @@ type TagControllerImpl struct {
 // Make sure that TagControllerImpl implements TagController
 var _ TagController = (*TagControllerImpl)(nil)
 
+// ListTags handles GET requests to retrieve all tags
+// It returns a list of all tags in the system
+//
+// Responses:
+//   - 200 OK with an array of tags on success
+//   - 500 Internal Server Error if a server error occurs
 func (tc *TagControllerImpl) ListTags(c *gin.Context) {
 	labels, err := tc.Service.ListLabels(models.Tag)
 	if err != nil {
@@ -31,6 +47,13 @@ func (tc *TagControllerImpl) ListTags(c *gin.Context) {
 	c.JSON(http.StatusOK, labels)
 }
 
+// CreateTag handles POST requests to create a new tag
+// The tag data is expected in the request body as JSON
+//
+// Responses:
+//   - 201 Created with the created tag on success
+//   - 400 Bad Request if the tag data is invalid
+//   - 500 Internal Server Error if a server error occurs
 func (tc *TagControllerImpl) CreateTag(c *gin.Context) {
 	var tag models.Label
 	if err := c.ShouldBindJSON(&tag); err != nil {
@@ -45,6 +68,14 @@ func (tc *TagControllerImpl) CreateTag(c *gin.Context) {
 	c.JSON(http.StatusCreated, tag)
 }
 
+// ReadTag handles GET requests to retrieve a specific tag by ID
+// The tag ID is expected as a URL parameter
+//
+// Responses:
+//   - 200 OK with the tag data on success
+//   - 400 Bad Request if the ID is invalid
+//   - 404 Not Found if no tag with the given ID exists
+//   - 500 Internal Server Error if a server error occurs
 func (tc *TagControllerImpl) ReadTag(c *gin.Context) {
 	rawId := c.Param("id")
 	id, ok := parseUUID(rawId)
@@ -60,6 +91,14 @@ func (tc *TagControllerImpl) ReadTag(c *gin.Context) {
 	c.JSON(http.StatusOK, tag)
 }
 
+// UpdateTag handles PUT requests to update an existing tag
+// The tag ID is expected as a URL parameter, and the updated tag data in the request body
+//
+// Responses:
+//   - 200 OK with the updated tag on success
+//   - 400 Bad Request if the ID or tag data is invalid
+//   - 404 Not Found if no tag with the given ID exists
+//   - 500 Internal Server Error if a server error occurs
 func (tc *TagControllerImpl) UpdateTag(c *gin.Context) {
 	rawId := c.Param("id")
 	id, ok := parseUUID(rawId)
@@ -80,6 +119,14 @@ func (tc *TagControllerImpl) UpdateTag(c *gin.Context) {
 	c.JSON(http.StatusOK, tag)
 }
 
+// DeleteTag handles DELETE requests to remove a tag by ID
+// The tag ID is expected as a URL parameter
+//
+// Responses:
+//   - 204 No Content on successful deletion
+//   - 400 Bad Request if the ID is invalid
+//   - 404 Not Found if no tag with the given ID exists
+//   - 500 Internal Server Error if a server error occurs
 func (tc *TagControllerImpl) DeleteTag(c *gin.Context) {
 	rawId := c.Param("id")
 	id, ok := parseUUID(rawId)

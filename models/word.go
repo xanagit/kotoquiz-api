@@ -1,3 +1,5 @@
+// Package models defines the database entities and their relationships
+// It uses GORM for object-relational mapping and includes model hooks and validations
 package models
 
 import (
@@ -12,6 +14,8 @@ const (
 	Kunyomi YomiType = "KUNYOMI"
 )
 
+// Word represents a vocabulary word in the database
+// It contains the core word data and references to translations, tags, and levels
 type Word struct {
 	ID            uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 	Kanji         string    `gorm:"size:50" json:"kanji"`
@@ -25,12 +29,14 @@ type Word struct {
 	Levels      []*Level `gorm:"many2many:word_level;joinForeignKey:WordID;joinReferences:LevelID" json:"levels"`
 }
 
-// BeforeDelete est un hook GORM qui sera appelé automatiquement avant la suppression
+// BeforeDelete is a GORM hook that runs before deleting a word
+// It handles cleaning up related records to prevent orphaned relationships
 func (w *Word) BeforeDelete(tx *gorm.DB) error {
-	// Supprimer les associations many2many
+	// Remove all word-tag associations many2many
 	if err := tx.Model(w).Association("Tags").Clear(); err != nil {
 		return err
 	}
+	// Remove all word-level associations
 	if err := tx.Model(w).Association("Levels").Clear(); err != nil {
 		return err
 	}

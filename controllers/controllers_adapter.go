@@ -1,3 +1,6 @@
+// Package controllers implements the HTTP handlers for the application API endpoints
+// It defines interfaces and implementations for all API controllers, handling request
+// parsing, validation, and response formatting.
 package controllers
 
 import (
@@ -29,6 +32,14 @@ var DefaultQpVals = defaultValues{
 	OffsetWords: DefaultOffsetWords,
 }
 
+// getQueryParamList extracts a comma-separated query parameter as a string slice
+//
+// Parameters:
+//   - c: *gin.Context - The Gin context containing the request
+//   - key: string - The name of the query parameter to extract
+//
+// Returns:
+//   - []string - A slice of strings from the comma-separated parameter, or empty slice if not found
 func getQueryParamList(c *gin.Context, paramName string) []string {
 	rawList := c.Query(paramName)
 	var strList []string
@@ -38,6 +49,15 @@ func getQueryParamList(c *gin.Context, paramName string) []string {
 	return strList
 }
 
+// getQueryParamInt extracts an integer query parameter with a default value
+//
+// Parameters:
+//   - c: *gin.Context - The Gin context containing the request
+//   - key: string - The name of the query parameter to extract
+//   - defaultValue: int - The default value to return if parameter is missing or invalid
+//
+// Returns:
+//   - int - The parsed integer value or default if not found/invalid
 func getQueryParamInt(c *gin.Context, paramName string, defaultValue int) (int, error) {
 	rawParam := c.Param(paramName)
 	param := defaultValue
@@ -54,6 +74,13 @@ func getQueryParamInt(c *gin.Context, paramName string, defaultValue int) (int, 
 	return param, nil
 }
 
+// getQueryParamLang extracts a language code from query parameters, defaulting to Japanese
+//
+// Parameters:
+//   - c: *gin.Context - The Gin context containing the request
+//
+// Returns:
+//   - string - The language code (defaults to "ja" if not specified)
 func getQueryParamLang(c *gin.Context) string {
 	lang := c.Query("lang")
 	if lang == "" {
@@ -62,6 +89,14 @@ func getQueryParamLang(c *gin.Context) string {
 	return lang
 }
 
+// parseUUID parses a string into a UUID, handling errors
+//
+// Parameters:
+//   - uuidStr: string - The string to parse as a UUID
+//
+// Returns:
+//   - uuid.UUID - The parsed UUID
+//   - error - An error if parsing fails
 func parseUUID(id string) (uuid.UUID, bool) {
 	parsed, err := uuid.Parse(id)
 	if err != nil {
@@ -70,6 +105,14 @@ func parseUUID(id string) (uuid.UUID, bool) {
 	return parsed, true
 }
 
+// parseUUIDs parses a slice of string UUIDs, handling errors
+//
+// Parameters:
+//   - uuidStrs: []string - A slice of strings to parse as UUIDs
+//
+// Returns:
+//   - []uuid.UUID - A slice of the parsed UUIDs
+//   - error - An error if any parsing fails
 func parseUUIDs(ids []string) ([]uuid.UUID, bool) {
 	parsed := make([]uuid.UUID, len(ids))
 	for i, id := range ids {
