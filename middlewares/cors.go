@@ -3,6 +3,8 @@ package middlewares
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/xanagit/kotoquiz-api/config"
+	"github.com/xanagit/kotoquiz-api/logger"
+	"go.uber.org/zap"
 	"net/http"
 	"strconv"
 	"strings"
@@ -23,14 +25,25 @@ type CORSMiddleware interface {
 
 type CORSMiddlewareImpl struct {
 	CORSConfig *CORSConfig
+	logger     *zap.Logger
 }
 
 // Make sure that CORSMiddlewareImpl implements CORSMiddleware
 var _ CORSMiddleware = (*CORSMiddlewareImpl)(nil)
 
 func NewCORSMiddleware(cfg *config.ApiConfig) (*CORSMiddlewareImpl, error) {
+	log := logger.Get()
+
+	corsConfig := DefaultCORSConfig(cfg)
+
+	log.Info("CORS middleware initialized",
+		zap.Strings("allowOrigins", corsConfig.AllowOrigins),
+		zap.Strings("allowMethods", corsConfig.AllowMethods),
+		zap.Bool("credentials", corsConfig.Credentials))
+
 	return &CORSMiddlewareImpl{
-		CORSConfig: DefaultCORSConfig(cfg),
+		CORSConfig: corsConfig,
+		logger:     log,
 	}, nil
 }
 
@@ -68,6 +81,17 @@ func (cm *CORSMiddlewareImpl) HandleCORS() gin.HandlerFunc {
 			if cm.CORSConfig.Credentials {
 				c.Header("Access-Control-Allow-Credentials", "true")
 			}
+
+			cm.logger.Debug("CORS headers applied",
+				zap.String("origin", origin),
+				zap.String("path", c.Request.URL.Path),
+				zap.String("method", c.Request.Method))
+		} else {
+			cm.logger.Warn("Unauthorized origin request",
+				zap.String("origin", origin),
+				zap.String("path", c.Request.URL.Path),
+				zap.String("method", c.Request.Method),
+				zap.String("clientIP", c.ClientIP()))
 		}
 
 		// Handle preflight requests

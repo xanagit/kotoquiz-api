@@ -7,6 +7,7 @@ import (
 	"github.com/xanagit/kotoquiz-api/middlewares"
 	"github.com/xanagit/kotoquiz-api/repositories"
 	"github.com/xanagit/kotoquiz-api/services"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -98,15 +99,20 @@ func InitializeAppComponents(db *gorm.DB, cfg *config.Config) *AppComponents {
 	}
 }
 
-func InitializeMiddlewareComponents(cfg *config.Config) (*MiddlewareComponents, error) {
+func InitializeMiddlewareComponents(cfg *config.Config, log *zap.Logger) (*MiddlewareComponents, error) {
 	corsMiddleware, corsErr := middlewares.NewCORSMiddleware(&cfg.Auth.ApiConfig)
 	if corsErr != nil {
+		log.Error("Failed to initialize CORS middleware", zap.Error(corsErr))
 		return nil, fmt.Errorf("failed to initialize cors middleware: %v", corsErr)
 	}
-	authMiddleware, authErr := middlewares.NewAuthMiddleware(&cfg.Auth.Keycloak)
+
+	authMiddleware, authErr := middlewares.NewAuthMiddleware(&cfg.Auth.Keycloak, log)
 	if authErr != nil {
+		log.Error("Failed to initialize auth middleware", zap.Error(authErr))
 		return nil, fmt.Errorf("failed to initialize auth middleware: %v", authErr)
 	}
+
+	log.Info("Middleware components initialized successfully")
 
 	return &MiddlewareComponents{
 		CORSMiddleware: corsMiddleware,

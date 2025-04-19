@@ -2,7 +2,7 @@ package config
 
 import (
 	"github.com/spf13/viper"
-	"log"
+	"go.uber.org/zap"
 	"sync"
 	"sync/atomic"
 )
@@ -12,7 +12,14 @@ var (
 	instance atomic.Value
 	// Protection for initialization
 	once sync.Once
+	// Logger instance
+	logger *zap.Logger
 )
+
+// SetLogger sets the logger for the config package
+func SetLogger(l *zap.Logger) {
+	logger = l
+}
 
 // Define Config struct to hold the app configuration
 type Config struct {
@@ -67,6 +74,15 @@ type ApiConfig struct {
 // GetConfig returns the singleton instance of the configuration
 // Thread-safe thanks to sync.Once and atomic.Value
 func GetConfig() (*Config, error) {
+	if logger == nil {
+		// Create a default logger if not set
+		var err error
+		logger, err = zap.NewProduction()
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	var loadErr error
 	config := instance.Load()
 	if config == nil {
@@ -90,6 +106,15 @@ func GetConfig() (*Config, error) {
 // LoadConfig function loads and returns the configuration from config.yml and environment variables
 // Creates a dedicated Viper instance to avoid conflicts
 func loadConfig() (*Config, error) {
+	if logger == nil {
+		// Create a default logger if not set
+		var err error
+		logger, err = zap.NewProduction()
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	v := viper.New() // Dedicated Viper instance
 	v.SetConfigName("config")
 	v.SetConfigType("yaml")
@@ -128,20 +153,25 @@ func loadConfig() (*Config, error) {
 	}
 	for key, env := range envVars {
 		if err := v.BindEnv(key, env); err != nil {
-			log.Fatalf("Erreur lors de la liaison de '%s': %v", key, err)
+			logger.Error("Error binding environment variable",
+				zap.String("key", key),
+				zap.Error(err))
 		}
 	}
 
 	// Read the configuration file
 	if err := v.ReadInConfig(); err != nil {
+		logger.Error("Error reading config file", zap.Error(err))
 		return nil, err
 	}
 
 	// Unmarshal the configuration into the Config struct
 	var config Config
 	if err := v.Unmarshal(&config); err != nil {
+		logger.Error("Error unmarshalling config", zap.Error(err))
 		return nil, err
 	}
 
+	logger.Info("Configuration loaded successfully")
 	return &config, nil
 }

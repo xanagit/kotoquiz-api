@@ -155,7 +155,7 @@ func waitForDatabase(dsn string, retries int) error {
 }
 
 // setupRouter configure le routeur Gin
-func setupRouter() (*gin.Engine, error) {
+func setupRouter(logger *zap.Logger) (*gin.Engine, error) {
 	// S'assurer que l'environnement est prêt
 	setupEnvironment()
 	ready.Wait() // Attendre que l'environnement soit prêt
@@ -165,7 +165,7 @@ func setupRouter() (*gin.Engine, error) {
 	}
 
 	dsn := "host=localhost user=postgres password=password dbname=testdb port=5433 sslmode=disable"
-	db, err := initialisation.DatabaseConnection(dsn)
+	db, err := initialisation.DatabaseConnection(dsn, logger)
 	if err != nil {
 		logger.Error("Failed to migrate database", zap.Error(err))
 		return nil, err
@@ -188,7 +188,7 @@ func setupRouter() (*gin.Engine, error) {
 	}
 	// Gin application configuration
 	r := gin.Default()
-	initialisation.ConfigureRoutes(r, components, middlewareComponents)
+	initialisation.ConfigureRoutes(r, components, middlewareComponents, logger)
 
 	logger.Info("router initialized", zap.Any("router", router))
 
@@ -214,7 +214,7 @@ func TestMain(m *testing.M) {
 	}()
 
 	var err error
-	router, err = setupRouter()
+	router, err = setupRouter(logger)
 	if err != nil || router == nil {
 		logger.Error("failed to setup router: %v", zap.Error(err))
 		os.Exit(1)

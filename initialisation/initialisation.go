@@ -6,12 +6,12 @@ import (
 	"github.com/xanagit/kotoquiz-api/config"
 	"github.com/xanagit/kotoquiz-api/middlewares"
 	"github.com/xanagit/kotoquiz-api/models"
+	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"log"
 )
 
-func ConfigureRoutes(r *gin.Engine, components *AppComponents, middlewareComponents *MiddlewareComponents) {
+func ConfigureRoutes(r *gin.Engine, components *AppComponents, middlewareComponents *MiddlewareComponents, log *zap.Logger) {
 	r.Use(middlewareComponents.CORSMiddleware.HandleCORS())
 	r.GET("/health", components.HealthController.HealthCheck)
 
@@ -54,25 +54,34 @@ func ConfigureRoutes(r *gin.Engine, components *AppComponents, middlewareCompone
 		techGroup.PUT("/levels/:id", components.LevelController.UpdateLevel)
 		techGroup.DELETE("/levels/:id", components.LevelController.DeleteLevel)
 	}
+
+	log.Info("Routes configured successfully")
 }
 
-func DatabaseConnectionFromConfig(cfg *config.Config) (*gorm.DB, error) {
+func DatabaseConnectionFromConfig(cfg *config.Config, log *zap.Logger) (*gorm.DB, error) {
 	// Use the loaded configuration values
 	dbConfig := cfg.Database
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d",
 		dbConfig.Host, dbConfig.User, dbConfig.Password, dbConfig.Name, dbConfig.Port)
 
-	db, err := DatabaseConnection(dsn)
+	log.Info("Connecting to database",
+		zap.String("host", dbConfig.Host),
+		zap.String("dbname", dbConfig.Name),
+		zap.Int("port", dbConfig.Port))
+
+	db, err := DatabaseConnection(dsn, log)
 	return db, err
 }
 
-func DatabaseConnection(dsn string) (*gorm.DB, error) {
+func DatabaseConnection(dsn string, log *zap.Logger) (*gorm.DB, error) {
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		log.Error("Failed to connect to database", zap.Error(err))
+		return nil, err
 	}
 
 	// Auto-migrate the models to keep the schema in sync
+	log.Info("Running database migrations")
 	err = db.AutoMigrate(
 		&models.Label{},
 		&models.Word{},
@@ -81,9 +90,12 @@ func DatabaseConnection(dsn string) (*gorm.DB, error) {
 		&models.WordLevel{},
 		&models.WordLearningHistory{})
 	if err != nil {
-		log.Fatal("failed to migrate database:", err)
+		log.Error("Failed to migrate database", zap.Error(err))
+		return nil, err
 	}
-	return db, err
+
+	log.Info("Database connected and migrations complete")
+	return db, nil
 }
 
 // TODO :Endpoints à implémenter
